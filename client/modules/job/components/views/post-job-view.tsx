@@ -192,7 +192,7 @@ export const PostJobView = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    if (id !== "0") {
+    if (id && id !== "0") {
       getJob(id)
         .then((res: any) => {
           formAdapter.setValues(res);
@@ -225,14 +225,16 @@ export const PostJobView = () => {
     if (status === "ACTIVE" && !validate()) return;
     postJob({
       ...form,
-      id: id !== "0" ? id : undefined,
+      id: id && id !== "0" ? id : undefined,
       postedBy: user.id,
       jobStatus: status,
     })
       .then((res: any) => {
         successNotification(
           "Success",
-          status === "ACTIVE" ? "Job posted successfully" : "Job drafted successfully"
+          status === "ACTIVE"
+            ? "Job posted successfully"
+            : "Job drafted successfully",
         );
         router.push(`/posted-jobs/${res.id}`);
       })
@@ -242,15 +244,14 @@ export const PostJobView = () => {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-mine-shaft-950 via-mine-shaft-900 to-mine-shaft-950 py-12 relative overflow-hidden">
+    <div className="min-h-screen bg-background py-12 relative overflow-hidden">
       {/* Decorative background blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
         <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
       </div>
 
-      <div className="relative w-11/12 max-w-5xl mx-auto space-y-6">
-
+      <div className="relative w-11/12 max-w-7xl mx-auto space-y-6">
         {/* ── Page Header ── */}
         <div className="flex items-start gap-5">
           <div className="p-4 bg-primary/10 border border-primary/20 rounded-2xl shadow-lg shadow-primary/10">
@@ -260,14 +261,15 @@ export const PostJobView = () => {
             <div className="flex items-center gap-2 mb-1">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs font-semibold text-primary">
                 <IconSparkles size={11} />
-                {id !== "0" ? "Editing Listing" : "New Listing"}
+                {id && id !== "0" ? "Editing Listing" : "New Listing"}
               </div>
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight">
-              {id !== "0" ? "Edit Job Posting" : "Post a New Job"}
+              {id && id !== "0" ? "Edit Job Posting" : "Post a New Job"}
             </h1>
             <p className="text-muted-foreground mt-1 text-sm">
-              Fill in the details below to {id !== "0" ? "update your" : "create a"} job posting
+              Fill in the details below to{" "}
+              {id && id !== "0" ? "update your" : "create a"} job posting
             </p>
           </div>
         </div>
@@ -318,7 +320,9 @@ export const PostJobView = () => {
                 }`}
               />
               {errors.packageOffered && (
-                <p className="text-xs text-destructive">{errors.packageOffered}</p>
+                <p className="text-xs text-destructive">
+                  {errors.packageOffered}
+                </p>
               )}
             </div>
           </div>
@@ -348,7 +352,9 @@ export const PostJobView = () => {
               </Label>
               <Textarea
                 value={form.about}
-                onChange={(e) => formAdapter.setFieldValue("about", e.target.value)}
+                onChange={(e) =>
+                  formAdapter.setFieldValue("about", e.target.value)
+                }
                 placeholder="Write a brief summary about the job position..."
                 rows={3}
                 className={`bg-input/20 border-border focus-visible:ring-primary focus-visible:border-primary text-foreground placeholder:text-muted-foreground resize-none ${
@@ -358,22 +364,28 @@ export const PostJobView = () => {
               <p className="text-xs text-muted-foreground">
                 A concise overview that will appear in job listings
               </p>
-              {errors.about && <p className="text-xs text-destructive">{errors.about}</p>}
+              {errors.about && (
+                <p className="text-xs text-destructive">{errors.about}</p>
+              )}
             </div>
 
             {/* Rich text editor */}
             <div className="space-y-1.5">
               <div className="flex items-center gap-2">
                 <Label className="text-foreground/80 font-medium text-sm">
-                  Detailed Job Description <span className="text-primary">*</span>
+                  Detailed Job Description{" "}
+                  <span className="text-primary">*</span>
                 </Label>
               </div>
               <p className="text-xs text-muted-foreground mb-2">
-                Provide comprehensive information about the role, responsibilities, and requirements
+                Provide comprehensive information about the role,
+                responsibilities, and requirements
               </p>
               <RichTextEditor form={formAdapter} data={editorData} />
               {errors.description && (
-                <p className="text-xs text-destructive mt-1">{errors.description}</p>
+                <p className="text-xs text-destructive mt-1">
+                  {errors.description}
+                </p>
               )}
             </div>
           </div>
@@ -382,7 +394,8 @@ export const PostJobView = () => {
         {/* ── Action Buttons ── */}
         <div className="flex items-center justify-between gap-4 pb-8">
           <p className="text-xs text-muted-foreground hidden sm:block">
-            All fields marked <span className="text-primary">*</span> are required
+            All fields marked <span className="text-primary">*</span> are
+            required
           </p>
           <div className="flex items-center gap-3 ml-auto">
             <Button
@@ -404,7 +417,6 @@ export const PostJobView = () => {
             </Button>
           </div>
         </div>
-
       </div>
     </div>
   );
