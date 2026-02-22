@@ -14,6 +14,7 @@ import {
   IconFileText,
   IconLogout2,
   IconChevronDown,
+  IconHistory,
 } from "@tabler/icons-react";
 import { useDispatch, useSelector } from "react-redux";
 import Link from "next/link";
@@ -44,14 +45,20 @@ export const ProfileMenu = () => {
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-accent transition-all duration-300 cursor-pointer backdrop-blur-sm group border border-border hover:border-border/80 outline-none">
           <Avatar className="h-8 w-8 ring-2 ring-border group-hover:ring-primary/50 transition-all duration-300">
             <AvatarImage
-              src={profile?.picture ? `data:image/jpeg;base64,${profile.picture}` : undefined}
+              src={
+                profile?.picture
+                  ? `data:image/jpeg;base64,${profile.picture}`
+                  : undefined
+              }
               alt={user?.name}
             />
             <AvatarFallback className="bg-primary/20 text-primary text-xs font-semibold">
               {initials}
             </AvatarFallback>
           </Avatar>
-          <span className="text-sm font-medium hidden md:block text-foreground">{user?.name}</span>
+          <span className="text-sm font-medium hidden md:block text-foreground">
+            {user?.name}
+          </span>
           <IconChevronDown
             stroke={1.5}
             className="h-4 w-4 text-foreground transition-transform duration-300 group-hover:translate-y-0.5 hidden md:block"
@@ -69,7 +76,11 @@ export const ProfileMenu = () => {
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10 ring-2 ring-primary/30">
               <AvatarImage
-                src={profile?.picture ? `data:image/jpeg;base64,${profile.picture}` : undefined}
+                src={
+                  profile?.picture
+                    ? `data:image/jpeg;base64,${profile.picture}`
+                    : undefined
+                }
                 alt={user?.name}
               />
               <AvatarFallback className="bg-primary/20 text-primary text-sm font-semibold">
@@ -77,8 +88,12 @@ export const ProfileMenu = () => {
               </AvatarFallback>
             </Avatar>
             <div>
-              <div className="text-foreground font-semibold text-sm">{user?.name}</div>
-              <div className="text-muted-foreground text-xs truncate max-w-[160px]">{user?.email}</div>
+              <div className="text-foreground font-semibold text-sm">
+                {user?.name}
+              </div>
+              <div className="text-muted-foreground text-xs truncate max-w-[160px]">
+                {user?.email}
+              </div>
             </div>
           </div>
         </div>
@@ -90,10 +105,12 @@ export const ProfileMenu = () => {
           </DropdownMenuItem>
         </Link>
 
-        <DropdownMenuItem className="text-foreground hover:bg-accent focus:bg-accent focus:text-foreground rounded-lg transition-all duration-200 my-1 cursor-pointer gap-2">
-          <IconMessageCircle size={18} stroke={1.5} />
-          <span className="font-medium">Messages</span>
-        </DropdownMenuItem>
+        <Link href="/jhistory">
+          <DropdownMenuItem className="text-foreground hover:bg-accent focus:bg-accent focus:text-foreground rounded-lg transition-all duration-200 my-1 cursor-pointer gap-2">
+            <IconHistory size={18} stroke={1.5} />
+            <span className="font-medium">History</span>
+          </DropdownMenuItem>
+        </Link>
 
         <DropdownMenuItem className="text-foreground hover:bg-accent focus:bg-accent focus:text-foreground rounded-lg transition-all duration-200 my-1 cursor-pointer gap-2">
           <IconFileText size={18} stroke={1.5} />
