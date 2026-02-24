@@ -216,3 +216,56 @@ export const DashboardAreaChart = ({ trendData }: { trendData: any[] }) => {
     </Card>
   );
 };
+
+export const DashboardRadarChart = ({ radarData }: { radarData: any[] }) => {
+  const radarConfig = {
+    count: { label: "Count", color: "var(--color-chart-5)" },
+  } satisfies ChartConfig;
+
+  return (
+    <Card className="border-border bg-card/60 backdrop-blur-xl h-full flex flex-col">
+      <CardHeader>
+        <CardTitle className="text-xl font-bold">
+          Top Candidate Skills
+        </CardTitle>
+        <CardDescription>
+          Most frequent skills among candidates.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex-1 flex items-center justify-center min-h-[300px] pb-4">
+        {radarData.length > 0 ? (
+          <ChartContainer
+            config={radarConfig}
+            className="w-full aspect-square max-h-[300px]"
+          >
+            <RadarChart
+              data={radarData}
+              margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+            >
+              <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+              <PolarGrid />
+              <PolarAngleAxis dataKey="skill" fontSize={12} />
+              <PolarRadiusAxis
+                angle={30}
+                domain={[0, "dataMax"]}
+                tick={false}
+                axisLine={false}
+              />
+              <Radar
+                name="Candidates"
+                dataKey="count"
+                stroke="var(--color-count)"
+                fill="var(--color-count)"
+                fillOpacity={0.6}
+              />
+            </RadarChart>
+          </ChartContainer>
+        ) : (
+          <div className="flex items-center justify-center h-[300px] text-muted-foreground text-sm">
+            Not enough data to display.
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};

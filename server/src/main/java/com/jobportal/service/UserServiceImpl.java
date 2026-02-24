@@ -1,6 +1,7 @@
 package com.jobportal.service;
 
 
+import com.jobportal.dto.AccountType;
 import com.jobportal.dto.LoginDTO;
 import com.jobportal.dto.ResponseDTO;
 import com.jobportal.dto.UserDTO;
@@ -124,6 +125,37 @@ public class UserServiceImpl implements UserService {
             otpRepository.deleteAll(expiredOTPs);
             System.out.println("removed: "+expiredOTPs.size()+" expired OTPs");
         }
+    }
+
+    @Override
+    public List<UserDTO> getAllUsers() {
+        return userRepository.findAll().stream().map(User::toDTO).toList();
+    }
+
+    @Override
+    public List<UserDTO> getUsersByAccountType(AccountType accountType) {
+        return userRepository.findByAccountType(accountType).stream().map(User::toDTO).toList();
+    }
+
+    @Override
+    public void deleteUser(Long id) throws JobPortalExceeption {
+        User user = userRepository.findById(id).orElseThrow(() -> new JobPortalExceeption("USER_NOT_FOUND"));
+        userRepository.delete(user);
+    }
+
+    @Override
+    public UserDTO createAdmin(UserDTO userDTO) throws JobPortalExceeption {
+        Optional<User> optional = userRepository.findByEmail(userDTO.getEmail());
+        if (optional.isPresent()) {
+            throw new JobPortalExceeption("USER_FOUND");
+        }
+        userDTO.setId(Utilities.getNextSequence("users"));
+        userDTO.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        userDTO.setAccountType(AccountType.ADMIN);
+        User user = userDTO.toEntity();
+        user = userRepository.save(user);
+        profileService.createProfile(userDTO.getEmail(), userDTO.getName(), user.getId());
+        return user.toDTO();
     }
 
 }

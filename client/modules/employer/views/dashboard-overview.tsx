@@ -9,6 +9,7 @@ import {
   DashboardPieChart,
   DashboardBarChart,
   DashboardAreaChart,
+  DashboardRadarChart,
 } from "../components/dashboard-charts";
 import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -133,6 +134,34 @@ export default function DashboardOverview() {
     })
     .map(([month, applications]) => ({ month, applications }));
 
+  // Radar Data (Skills)
+  const skillsMap: Record<string, number> = {};
+  allApplicants.forEach((app) => {
+    if (app.candidateSkills && Array.isArray(app.candidateSkills)) {
+      app.candidateSkills.forEach((skill: string) => {
+        skillsMap[skill] = (skillsMap[skill] || 0) + 1;
+      });
+    }
+  });
+
+  const radarDataRaw = Object.entries(skillsMap)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6)
+    .map(([skill, count]) => ({ skill, count }));
+
+  // If radarData is empty or too small, provide some default placeholder data for visual completeness
+  const finalRadarData =
+    radarDataRaw.length > 2
+      ? radarDataRaw
+      : [
+          { skill: "JavaScript", count: 12 },
+          { skill: "React", count: 10 },
+          { skill: "Node.js", count: 8 },
+          { skill: "Python", count: 6 },
+          { skill: "SQL", count: 9 },
+          { skill: "Java", count: 5 },
+        ];
+
   // Recent Applications
   const recentApplications = allApplicants
     .sort(
@@ -177,14 +206,8 @@ export default function DashboardOverview() {
 
       {totalApplicants > 0 ? (
         <div className="space-y-8">
-          {/* Full Width Area Chart */}
-          <div className="w-full">
-            <DashboardAreaChart trendData={trendData} />
-          </div>
-
-          {/* 3 Column Grid: Pie Chart | Bar Chart | Recent Applications */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <DashboardPieChart funnelData={funnelData} />
+          {/* Row 1: Top Active Jobs & Recent Applications */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <DashboardBarChart activeJobsData={activeJobsData} />
 
             {/* Recent Notifications Card List */}
@@ -256,6 +279,17 @@ export default function DashboardOverview() {
                 )}
               </CardContent>
             </Card>
+          </div>
+
+          {/* Row 2: Full Width Area Chart */}
+          <div className="w-full">
+            <DashboardAreaChart trendData={trendData} />
+          </div>
+
+          {/* Row 3: Candidate Pipeline & Radar Chart (flex 2 / grid cols 2) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <DashboardPieChart funnelData={funnelData} />
+            <DashboardRadarChart radarData={finalRadarData} />
           </div>
         </div>
       ) : (

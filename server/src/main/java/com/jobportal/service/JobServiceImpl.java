@@ -94,6 +94,19 @@ public class JobServiceImpl implements JobService{
         applicants.add(applicantDTO.toEntity());
         job.setApplicants(applicants);
         jobRepository.save(job);
+
+        // Notify Employer
+        NotificationDto notificationDto = new NotificationDto();
+        notificationDto.setAction("New Applicant");
+        notificationDto.setMessage(applicantDTO.getName() + " applied for " + job.getJobTitle());
+        notificationDto.setUserId(job.getPostedBy());
+        notificationDto.setRoute("/employer/jobs/" + job.getId() + "/analytics");
+
+        try {
+            notificationService.sendNotification(notificationDto);
+        } catch (JobPortalExceeption e) {
+            System.out.println("Error sending application notification: " + e.getMessage());
+        }
     }
 
     @Override
@@ -179,6 +192,9 @@ public class JobServiceImpl implements JobService{
                     message = "Congratulations! You received an offer for " + job.getJobTitle();
                     emailMessage = "Congratulations! We are thrilled to offer you the position of " + job.getJobTitle()
                             + " at " + job.getCompany() + ". Welcome to the team!";
+                } else if (application.getApplicationStatus().equals(ApplicationStatus.APPLIED)) {
+                    action = "Application Status Reset";
+                    message = "Your application for " + job.getJobTitle() + " was reset to APPLIED.";
                 }
 
                 // Override with custom email message from employer if provided
@@ -227,6 +243,61 @@ public class JobServiceImpl implements JobService{
     }
 
     @Override
+    public Object getApplicantsFiltered(Long jobId, String status, Integer matchScore, int page, int size)
+            throws JobPortalExceeption {
+        Job job = jobRepository.findById(jobId).orElseThrow(() -> new JobPortalExceeption("JOB_NOT_FOUND"));
+
+        List<Applicant> applicants = job.getApplicants();
+        if (applicants == null) {
+            applicants = new ArrayList<>();
+        }
+
+        // Apply filters
+        List<ApplicantDTO> filtered = applicants.stream()
+                .filter(a -> {
+                    boolean matchesStatus = true;
+                    if (status != null && !status.trim().isEmpty()) {
+                        matchesStatus = a.getApplicationStatus().name().equalsIgnoreCase(status);
+                    }
+
+                    boolean matchesScore = true;
+                    if (matchScore != null) {
+                        matchesScore = a.getMatchScore() != null && a.getMatchScore() >= matchScore;
+                    }
+
+                    return matchesStatus && matchesScore;
+                })
+                // Sort by applied date descending (assuming applicantId strictly increments
+                // over time as proxy, or we can just reverse since newly applied are added to
+                // end of list)
+                .sorted((a1, a2) -> a2.getApplicantId().compareTo(a1.getApplicantId()))
+                .map(Applicant::toDTO)
+                .toList();
+
+        // Apply pagination
+        int totalElements = filtered.size();
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+
+        int fromIndex = page * size;
+        int MathMin = Math.min(fromIndex + size, totalElements);
+
+        List<ApplicantDTO> content = new ArrayList<>();
+        if (fromIndex < totalElements) {
+            content = filtered.subList(fromIndex, MathMin);
+        }
+
+        // Create a custom paginated response map
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
+        response.put("content", content);
+        response.put("page", page);
+        response.put("size", size);
+        response.put("totalElements", totalElements);
+        response.put("totalPages", totalPages);
+
+        return response;
+    }
+
+    @Override
     public List<ApplicantDTO> getApplicantsByEmployer(Long employerId, List<String> status) throws JobPortalExceeption {
         List<Job> jobs = jobRepository.findByPostedBy(employerId);
         List<ApplicantDTO> filteredApplicants = new ArrayList<>();
@@ -260,5 +331,11 @@ public class JobServiceImpl implements JobService{
         }
 
         return filteredApplicants;
+    }
+
+    @Override
+    public void deleteJob(Long id) throws JobPortalExceeption {
+        Job job = jobRepository.findById(id).orElseThrow(() -> new JobPortalExceeption("JOB_NOT_FOUND"));
+        jobRepository.delete(job);
     }
 }

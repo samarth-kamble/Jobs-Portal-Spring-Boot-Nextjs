@@ -40,7 +40,10 @@ export const NotificationMenu = () => {
           {/* Hover glow */}
           <div className="absolute inset-0 bg-linear-to-r from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg" />
 
-          <IconBell stroke={1.5} className="h-5 w-5 text-foreground relative z-10" />
+          <IconBell
+            stroke={1.5}
+            className="h-5 w-5 text-foreground relative z-10"
+          />
 
           {/* Unread dot indicator */}
           {notifications.length > 0 && (
@@ -57,7 +60,9 @@ export const NotificationMenu = () => {
         {/* Header */}
         <div className="px-4 py-3 border-b border-border bg-accent/50">
           <div className="flex items-center justify-between">
-            <h3 className="text-foreground font-semibold text-base">Notifications</h3>
+            <h3 className="text-foreground font-semibold text-base">
+              Notifications
+            </h3>
             {notifications.length > 0 && (
               <Badge
                 variant="secondary"
@@ -94,7 +99,7 @@ export const NotificationMenu = () => {
                     <IconX size={14} stroke={2} />
                   </button>
 
-                  <div className="flex gap-3">
+                  <div className="flex gap-3 relative z-10">
                     {/* Icon */}
                     <div className="shrink-0 mt-1">
                       <div className="p-2 rounded-lg bg-primary/20 text-primary">
@@ -103,20 +108,21 @@ export const NotificationMenu = () => {
                     </div>
 
                     {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-foreground font-medium text-sm mb-1">{noti.action}</h4>
-                      <p className="text-muted-foreground text-xs line-clamp-2">{noti.message}</p>
+                    <div className="flex-1 min-w-0 pr-6">
+                      <h4 className="text-foreground font-medium text-sm mb-1">
+                        {noti.action}
+                      </h4>
+                      <p className="text-muted-foreground text-xs line-clamp-2">
+                        {noti.message}
+                      </p>
                       <div className="mt-2">
-                        <span className="inline-flex items-center gap-1 text-xs text-primary">
+                        <span className="inline-flex items-center justify-center gap-1.5 px-2 py-0.5 rounded-full bg-primary/10 text-[10px] font-medium text-primary uppercase tracking-wider">
                           <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                           New
                         </span>
                       </div>
                     </div>
                   </div>
-
-                  {/* Hover gradient */}
-                  <div className="absolute inset-0 bg-linear-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg pointer-events-none" />
                 </div>
               ))}
             </div>
@@ -124,9 +130,15 @@ export const NotificationMenu = () => {
         ) : (
           <div className="py-16 px-4 text-center">
             <div className="inline-flex p-4 rounded-full bg-accent/50 mb-4">
-              <IconBell size={32} stroke={1.5} className="text-muted-foreground" />
+              <IconBell
+                size={32}
+                stroke={1.5}
+                className="text-muted-foreground"
+              />
             </div>
-            <p className="text-muted-foreground text-sm font-medium">No notifications yet</p>
+            <p className="text-muted-foreground text-sm font-medium">
+              No notifications yet
+            </p>
             <p className="text-muted-foreground/70 text-xs mt-1">
               We'll notify you when something arrives
             </p>

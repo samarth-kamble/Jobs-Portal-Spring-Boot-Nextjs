@@ -61,6 +61,17 @@ public class JobAPI {
         return new ResponseEntity<>(jobService.analyzeResume(jobId, applicantId), HttpStatus.OK);
     }
 
+    @GetMapping("/{id}/applicants/filter")
+    public ResponseEntity<Object> getApplicantsFiltered(
+            @PathVariable Long id,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Integer matchScore,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) throws JobPortalExceeption {
+        return new ResponseEntity<>(jobService.getApplicantsFiltered(id, status, matchScore, page, size),
+                HttpStatus.OK);
+    }
+
     @GetMapping("/employer/{employerId}/applicants")
     public ResponseEntity<List<ApplicantDTO>> getApplicantsByEmployer(
             @PathVariable Long employerId,

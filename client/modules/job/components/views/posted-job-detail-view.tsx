@@ -16,7 +16,6 @@ import {
 } from "@tabler/icons-react";
 import { getJob } from "../../server/job-service";
 import { SectionHeader } from "./post-job-view"; // Reusing SectionHeader
-import { TalentCard } from "../ui/talent-card";
 
 export const PostedJobDetailView = () => {
   const params = useParams();
@@ -226,32 +225,6 @@ export const PostedJobDetailView = () => {
           </div>
         </div>
 
-        {/* Applicants Section */}
-        {user?.id === job.postedBy &&
-          job.applicants &&
-          job.applicants.length > 0 && (
-            <div className="mt-12 space-y-6">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="h-8 w-1.5 bg-linear-to-b from-primary to-primary/60 rounded-full" />
-                <h2 className="text-2xl font-bold text-foreground">
-                  Applicants ({job.applicants.length})
-                </h2>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {job.applicants.map((applicant: any, idx: number) => (
-                  <TalentCard
-                    key={idx}
-                    {...applicant}
-                    posted={true}
-                    jobTitle={job.jobTitle}
-                    company={job.company}
-                    requiredSkills={job.skillsRequired}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
       </div>
     </div>
   );
