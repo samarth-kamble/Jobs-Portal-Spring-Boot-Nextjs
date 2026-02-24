@@ -28,6 +28,11 @@ public class ApplicantDTO {
     private List<String> requiredSkills;
     private List<String> candidateSkills;
 
+    // Additional context fields for flattened API responses
+    private Long jobId;
+    private String jobTitle;
+    private String company;
+
     public Applicant toEntity(){
         return new Applicant(this.applicantId, this.name, this.email, this.phone, this.website,
                 this.resume != null ? Base64.getDecoder().decode(this.resume) : null, this.coverLetter, this.timestamp,

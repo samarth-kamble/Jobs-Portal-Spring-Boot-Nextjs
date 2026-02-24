@@ -33,6 +33,6 @@ public class Applicant {
         return new ApplicantDTO(this.applicantId, this.name, this.email, this.phone, this.website,
                 this.resume != null ? Base64.getEncoder().encodeToString(this.resume) : null, this.coverLetter,
                 this.timestamp, this.applicationStatus, this.interviewTime, this.matchScore, this.aiExplanation,
-                this.requiredSkills, this.candidateSkills);
+                this.requiredSkills, this.candidateSkills, null, null, null);
     }
 }
