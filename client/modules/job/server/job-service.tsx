@@ -22,6 +22,25 @@ export const getJob = async(id: any) =>{
         .catch(error => {throw error;})
 }
 
+export const getApplicantsFiltered = async (
+  jobId: any,
+  status?: string,
+  matchScore?: number,
+  page: number = 0,
+  size: number = 10,
+) => {
+  let query = `?page=${page}&size=${size}`;
+  if (status) query += `&status=${status}`;
+  if (matchScore) query += `&matchScore=${matchScore}`;
+
+  return axios
+    .get(`${base_url}/${jobId}/applicants/filter${query}`)
+    .then((result) => result.data)
+    .catch((error) => {
+      throw error;
+    });
+};
+
 export const applyJob = async(id:any, applicant:any) => {
     return axios.post(`${base_url}/apply/${id}`, applicant)
         .then(result => result.data)

@@ -23,5 +23,10 @@ public interface JobService {
 
     public ApplicantDTO analyzeResume(Long jobId, Long applicantId) throws JobPortalExceeption;
 
+    public Object getApplicantsFiltered(Long jobId, String status, Integer matchScore, int page, int size)
+            throws JobPortalExceeption;
+
     public List<ApplicantDTO> getApplicantsByEmployer(Long employerId, List<String> status) throws JobPortalExceeption;
+
+    public void deleteJob(Long id) throws JobPortalExceeption;
 }
