@@ -34,7 +34,7 @@ public class User implements UserDetails {
     private AccountType accountType;
 
     public UserDTO toDTO() {
-        return new UserDTO(this.id, this.name, this.email, this.password, this.accountType, null);
+        return new UserDTO(this.id, this.name, this.email, this.password, this.accountType, null, null);
     }
 
     @Override

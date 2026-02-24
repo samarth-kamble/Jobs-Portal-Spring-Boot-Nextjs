@@ -34,7 +34,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(req -> req
                         .requestMatchers("/users/login", "/users/register", "/users/send-otp/**",
                                 "/users/verify-otp/**",
-                                "/users/change-pass", "/jobs/get-all", "/jobs/get/**")
+                                "/users/change-pass", "/users/refresh-token",
+                                "/jobs/get-all", "/jobs/get/**")
                         .permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
