@@ -49,3 +49,24 @@ export const analyzeResume = async (jobId: any, applicantId: any) => {
       throw error;
     });
 };
+
+export const getApplicantsByEmployer = async (
+  employerId: any,
+  status?: string | string[],
+) => {
+  let query = "";
+  if (status) {
+    if (Array.isArray(status)) {
+      query = `?status=${status.join(",")}`;
+    } else {
+      query = `?status=${status}`;
+    }
+  }
+
+  return axios
+    .get(`${base_url}/employer/${employerId}/applicants${query}`)
+    .then((result) => result.data)
+    .catch((error) => {
+      throw error;
+    });
+};

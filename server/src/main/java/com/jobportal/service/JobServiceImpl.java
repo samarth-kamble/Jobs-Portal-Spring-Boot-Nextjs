@@ -225,4 +225,40 @@ public class JobServiceImpl implements JobService{
         jobRepository.save(job);
 
     }
+
+    @Override
+    public List<ApplicantDTO> getApplicantsByEmployer(Long employerId, List<String> status) throws JobPortalExceeption {
+        List<Job> jobs = jobRepository.findByPostedBy(employerId);
+        List<ApplicantDTO> filteredApplicants = new ArrayList<>();
+
+        for (Job job : jobs) {
+            if (job.getApplicants() != null) {
+                for (Applicant applicant : job.getApplicants()) {
+                    // Check if applicant matches the status filter (if provided)
+                    boolean matchesStatus = false;
+                    if (status == null || status.isEmpty()) {
+                        matchesStatus = true; // No filter, include all
+                    } else {
+                        for (String s : status) {
+                            if (applicant.getApplicationStatus().name().equalsIgnoreCase(s)) {
+                                matchesStatus = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (matchesStatus) {
+                        ApplicantDTO dto = applicant.toDTO();
+                        // Inject job context
+                        dto.setJobId(job.getId());
+                        dto.setJobTitle(job.getJobTitle());
+                        dto.setCompany(job.getCompany());
+                        filteredApplicants.add(dto);
+                    }
+                }
+            }
+        }
+
+        return filteredApplicants;
+    }
 }

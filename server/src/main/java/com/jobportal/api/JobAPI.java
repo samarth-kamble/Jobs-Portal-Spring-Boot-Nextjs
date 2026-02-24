@@ -61,4 +61,10 @@ public class JobAPI {
         return new ResponseEntity<>(jobService.analyzeResume(jobId, applicantId), HttpStatus.OK);
     }
 
+    @GetMapping("/employer/{employerId}/applicants")
+    public ResponseEntity<List<ApplicantDTO>> getApplicantsByEmployer(
+            @PathVariable Long employerId,
+            @RequestParam(required = false) List<String> status) throws JobPortalExceeption {
+        return new ResponseEntity<>(jobService.getApplicantsByEmployer(employerId, status), HttpStatus.OK);
+    }
 }
