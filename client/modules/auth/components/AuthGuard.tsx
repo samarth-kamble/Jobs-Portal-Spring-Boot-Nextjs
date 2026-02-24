@@ -22,19 +22,33 @@ export const AuthGuard = ({
   const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
+    let currentUser = user;
+    if (!currentUser && typeof window !== "undefined") {
+      const stored = localStorage.getItem("user");
+      if (stored) {
+        try {
+          currentUser = JSON.parse(stored);
+        } catch (e) {}
+      }
+    }
+
     // If not authenticated and auth is required
-    if (requireAuth && !user) {
+    if (requireAuth && !currentUser) {
       router.push("/login");
       return;
     }
 
     // If authenticated but role doesn't match
-    if (user && allowedRoles && !allowedRoles.includes(user.accountType)) {
-      if (user.accountType === "APPLICANT") {
+    if (
+      currentUser &&
+      allowedRoles &&
+      !allowedRoles.includes(currentUser.accountType)
+    ) {
+      if (currentUser.accountType === "APPLICANT") {
         router.push("/find-jobs");
-      } else if (user.accountType === "EMPLOYER") {
+      } else if (currentUser.accountType === "EMPLOYER") {
         router.push("/find-talent");
-      } else if (user.accountType === "ADMIN") {
+      } else if (currentUser.accountType === "ADMIN") {
         router.push("/admin");
       } else {
         router.push("/");
@@ -43,7 +57,9 @@ export const AuthGuard = ({
     }
 
     // Authorized
-    setIsAuthorized(true);
+    if (currentUser || !requireAuth) {
+      setIsAuthorized(true);
+    }
   }, [user, requireAuth, allowedRoles, router, pathname]);
 
   if (!isAuthorized) {
