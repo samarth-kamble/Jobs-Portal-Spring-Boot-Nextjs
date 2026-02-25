@@ -13,6 +13,7 @@ import {
 } from "@tabler/icons-react";
 import Link from "next/link";
 import { timeAgo } from "@/lib/time-ago";
+import { CompanyLogo } from "@/components/ui/company-logo";
 
 const getStatusColor = (status: string) => {
   switch (status?.toUpperCase()) {
@@ -58,14 +59,11 @@ export const JobHistoryCard = ({ job, applicant }: { job: any; applicant: any })
 
       {/* Company Logo */}
       <div className="shrink-0 flex sm:flex-col items-start gap-4">
-        <div className="w-14 h-14 bg-background rounded-xl border border-border/50 p-2.5 shadow-sm group-hover:border-primary/20 group-hover:shadow-primary/10 transition-all">
-          <img
-            src={`/icons/${job.company?.charAt(0).toUpperCase()}${job.company?.slice(1)}.png`}
-            alt={job.company}
-            className="w-full h-full object-contain"
-            onError={(e) => {
-              e.currentTarget.src = "/icons/default.png";
-            }}
+        <div className="w-14 h-14 bg-background rounded-xl border border-border/50 p-2.5 shadow-sm group-hover:border-primary/20 group-hover:shadow-primary/10 transition-all flex items-center justify-center overflow-hidden">
+          <CompanyLogo
+            company={job.company}
+            className="w-full h-full"
+            fallbackClassName="w-full h-full"
           />
         </div>
       </div>
@@ -83,7 +81,7 @@ export const JobHistoryCard = ({ job, applicant }: { job: any; applicant: any })
             {/* Status Badge */}
             <div
               className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-semibold shrink-0 sm:self-start ${getStatusColor(
-                status
+                status,
               )}`}
             >
               {getStatusIcon(status)}
@@ -117,7 +115,7 @@ export const JobHistoryCard = ({ job, applicant }: { job: any; applicant: any })
 
       {/* Actions */}
       <div className="shrink-0 flex items-center justify-end border-t border-border/40 pt-4 sm:border-t-0 sm:pt-0">
-         <Link href={`/jobs/${job.id}`}>
+        <Link href={`/jobs/${job.id}`}>
           <button className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-primary/10 text-primary border border-primary/20 font-medium text-sm hover:bg-primary hover:text-primary-foreground hover:scale-105 transition-all duration-200">
             <IconEye size={16} />
             View Listing

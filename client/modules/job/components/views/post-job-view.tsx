@@ -155,6 +155,7 @@ export const PostJobView = () => {
     skillsRequired: [] as string[],
     about: "",
     description: content,
+    endDate: "",
   });
 
   /* Mantine-compatible form adapter — SelectInput & MyRichTextEditor call these */
@@ -185,6 +186,7 @@ export const PostJobView = () => {
         skillsRequired: [],
         about: "",
         description: content,
+        endDate: "",
       });
       setErrors({});
     },
@@ -217,6 +219,16 @@ export const PostJobView = () => {
     if (!form.skillsRequired.length) e.skillsRequired = "At least one skill is required";
     if (!form.about) e.about = "Job summary is required";
     if (!form.description) e.description = "Job description is required";
+    if (!form.endDate) {
+      e.endDate = "Application deadline is required";
+    } else {
+      const selectedDate = new Date(form.endDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (selectedDate <= today) {
+        e.endDate = "Deadline must be a future date";
+      }
+    }
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -323,6 +335,32 @@ export const PostJobView = () => {
                 <p className="text-xs text-destructive">
                   {errors.packageOffered}
                 </p>
+              )}
+            </div>
+
+            {/* End Date Input */}
+            <div className="space-y-1.5">
+              <Label className="text-foreground/80 font-medium text-sm">
+                Application Deadline <span className="text-primary">*</span>
+              </Label>
+              <Input
+                type="date"
+                min={new Date().toISOString().split("T")[0]}
+                value={form.endDate ? form.endDate.split("T")[0] : ""}
+                onChange={(e) => {
+                  formAdapter.setFieldValue(
+                    "endDate",
+                    e.target.value
+                      ? new Date(e.target.value).toISOString()
+                      : "",
+                  );
+                }}
+                className={`bg-input/20 border-border focus-visible:ring-primary focus-visible:border-primary text-foreground placeholder:text-muted-foreground ${
+                  errors.endDate ? "border-destructive" : ""
+                }`}
+              />
+              {errors.endDate && (
+                <p className="text-xs text-destructive">{errors.endDate}</p>
               )}
             </div>
           </div>

@@ -126,7 +126,7 @@ export const SelectInput = (props: any) => {
           align="start"
           sideOffset={6}
         >
-          <Command className="bg-transparent">
+          <Command className="bg-transparent" shouldFilter={false}>
             <div className="border-b border-border/30 px-1 pt-1">
               <CommandInput
                 value={search}

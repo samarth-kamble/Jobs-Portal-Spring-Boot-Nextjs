@@ -15,6 +15,7 @@ import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
 import { changeProfile } from "@/modules/landing/server/profile-slice";
 import { timeAgo } from "@/lib/time-ago";
+import { CompanyLogo } from "@/components/ui/company-logo";
 
 export const JobCard = (props: any) => {
   const profile = useSelector((state: any) => state.profile);
@@ -32,17 +33,15 @@ export const JobCard = (props: any) => {
 
   return (
     <div className="group relative backdrop-blur-xl bg-muted/20 border border-border/20 rounded-xl p-5 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 flex flex-col">
-
       {/* ── Header ── */}
       <div className="flex justify-between items-start mb-4">
         <div className="flex gap-3 items-start flex-1 min-w-0">
           {/* Company logo */}
           <div className="p-2 bg-white rounded-lg shadow-md shrink-0">
-            <img
-              className="h-10 w-10 object-contain"
-              src={`/icons/${props.company?.charAt(0).toUpperCase()}${props.company?.slice(1)}.png`}
-              alt={props.company}
-              onError={(e) => { e.currentTarget.src = "/icons/default.png"; }}
+            <CompanyLogo
+              company={props.company}
+              className="h-10 w-10"
+              fallbackClassName="h-10 w-10"
             />
           </div>
 

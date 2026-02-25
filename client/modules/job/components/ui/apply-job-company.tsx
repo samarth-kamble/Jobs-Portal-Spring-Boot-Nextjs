@@ -3,6 +3,7 @@
 import { timeAgo } from "@/lib/time-ago";
 import ApplicationForm from "./application-form";
 import { IconBriefcase, IconUsers, IconClock } from "@tabler/icons-react";
+import { CompanyLogo } from "@/components/ui/company-logo";
 
 const ApplyJobCompany = (props: any) => {
   return (
@@ -18,13 +19,10 @@ const ApplyJobCompany = (props: any) => {
             <div className="relative shrink-0">
               <div className="absolute inset-0 bg-primary/10 blur-xl rounded-2xl group-hover:bg-primary/20 transition-colors" />
               <div className="relative bg-background border border-border rounded-2xl p-4 group-hover:border-primary/30 transition-all shadow">
-                <img
-                  className="h-16 w-16 object-contain"
-                  src={`/icons/${props.company?.charAt(0).toUpperCase()}${props.company?.slice(1)}.png`}
-                  alt={props.company}
-                  onError={(e) => {
-                    e.currentTarget.src = "/icons/default.png";
-                  }}
+                <CompanyLogo
+                  company={props.company}
+                  className="h-16 w-16"
+                  fallbackClassName="h-16 w-16"
                 />
               </div>
             </div>
@@ -38,9 +36,15 @@ const ApplyJobCompany = (props: any) => {
                 {/* Company Name */}
                 <div className="flex items-center gap-2">
                   <div className="p-1.5 bg-muted rounded-lg">
-                    <IconBriefcase size={15} className="text-primary" stroke={1.5} />
+                    <IconBriefcase
+                      size={15}
+                      className="text-primary"
+                      stroke={1.5}
+                    />
                   </div>
-                  <span className="font-medium capitalize">{props.company}</span>
+                  <span className="font-medium capitalize">
+                    {props.company}
+                  </span>
                 </div>
 
                 <div className="w-1 h-1 bg-border rounded-full" />
@@ -48,7 +52,11 @@ const ApplyJobCompany = (props: any) => {
                 {/* Post Time */}
                 <div className="flex items-center gap-2">
                   <div className="p-1.5 bg-muted rounded-lg">
-                    <IconClock size={15} className="text-primary" stroke={1.5} />
+                    <IconClock
+                      size={15}
+                      className="text-primary"
+                      stroke={1.5}
+                    />
                   </div>
                   <span>{timeAgo(props.postTime)}</span>
                 </div>
@@ -58,13 +66,19 @@ const ApplyJobCompany = (props: any) => {
                 {/* Applicants Count */}
                 <div className="flex items-center gap-2">
                   <div className="p-1.5 bg-muted rounded-lg">
-                    <IconUsers size={15} className="text-primary" stroke={1.5} />
+                    <IconUsers
+                      size={15}
+                      className="text-primary"
+                      stroke={1.5}
+                    />
                   </div>
                   <span>
                     <span className="font-semibold text-foreground">
                       {props.applicants ? props.applicants.length : 0}
                     </span>{" "}
-                    {props.applicants?.length === 1 ? "Applicant" : "Applicants"}
+                    {props.applicants?.length === 1
+                      ? "Applicant"
+                      : "Applicants"}
                   </span>
                 </div>
               </div>
@@ -73,7 +87,9 @@ const ApplyJobCompany = (props: any) => {
             {/* Status Badge */}
             <div className="hidden md:block shrink-0">
               <div className="px-4 py-2 bg-primary/10 border border-primary/25 rounded-xl">
-                <span className="text-sm font-semibold text-primary">Now Hiring</span>
+                <span className="text-sm font-semibold text-primary">
+                  Now Hiring
+                </span>
               </div>
             </div>
           </div>

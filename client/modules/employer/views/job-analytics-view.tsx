@@ -8,6 +8,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
   IconCalendarMonth,
   IconMapPin,
   IconMail,
@@ -37,6 +46,22 @@ export const JobAnalyticsView = ({ jobId }: JobAnalyticsViewProps) => {
   const [job, setJob] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [scanningId, setScanningId] = useState<string | null>(null);
+  const [selectedAiApplicant, setSelectedAiApplicant] = useState<any | null>(
+    null,
+  );
+  const [aiDialogOpen, setAiDialogOpen] = useState(false);
+
+  // Status Action Dialog States
+  const [interviewOpen, setInterviewOpen] = useState(false);
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+  const [emailMessage, setEmailMessage] = useState("");
+  const [pendingOfferStatus, setPendingOfferStatus] = useState("");
+  const [selectedApplicant, setSelectedApplicant] = useState<any | null>(null);
+
+  /* Min date for date picker */
+  const todayStr = new Date().toISOString().split("T")[0];
 
   // Pagination & Filtering State
   const [applicants, setApplicants] = useState<any[]>([]);
@@ -107,20 +132,60 @@ export const JobAnalyticsView = ({ jobId }: JobAnalyticsViewProps) => {
       });
   };
 
-  const handleStatusChange = (applicantId: string, status: string) => {
-    const payload = {
+  const handleOfferClick = (applicant: any, status: string) => {
+    setSelectedApplicant(applicant);
+    setPendingOfferStatus(status);
+    let defaultMsg = "";
+    if (status === "INTERVIEWING") {
+      defaultMsg = `Congratulations! You have been selected for an interview for the position of ${job.jobTitle || "the given role"} at ${job.company || "our company"}. We will be in touch shortly with more details.`;
+    } else if (status === "OFFERED") {
+      defaultMsg = `Congratulations! We are thrilled to offer you the position of ${job.jobTitle || "the given role"} at ${job.company || "our company"}. Welcome to the team!`;
+    } else if (status === "REJECTED") {
+      defaultMsg = `Thank you for your interest in ${job.company || "our company"}. Unfortunately, we will not be moving forward with your application for the ${job.jobTitle || "the given role"} position at this time. We wish you the best in your job search.`;
+    }
+
+    setEmailMessage(defaultMsg);
+
+    if (status === "INTERVIEWING") {
+      setInterviewOpen(true);
+    } else {
+      setEmailDialogOpen(true);
+    }
+  };
+
+  const handleOfferSubmit = (status: string) => {
+    if (!selectedApplicant) return;
+
+    let payload: any = {
       id: jobId,
-      applicantId: applicantId,
+      applicantId: selectedApplicant.applicantId,
       applicationStatus: status,
-      emailMessage: `Status updated to ${status}`,
+      emailMessage: emailMessage,
     };
+
+    if (status === "INTERVIEWING") {
+      const combined = new Date(`${date}T${time}`);
+      payload = { ...payload, interviewTime: combined };
+    }
 
     changeAppStatus(payload)
       .then(() => {
-        successNotification("Status Updated", `Applicant marked as ${status}`);
+        if (status === "INTERVIEWING")
+          successNotification(
+            "Interview Scheduled",
+            "Interview scheduled & email sent successfully 👍",
+          );
+        else if (status === "OFFERED")
+          successNotification("Hired", "Offer & email sent successfully 👏");
+        else
+          successNotification(
+            "Rejected",
+            "Application Rejected & email sent 🙏",
+          );
         fetchFilteredData();
       })
-      .catch((err) => {
+      .catch((err: any) => {
+        console.error(err);
         errorNotification(
           "Error",
           err?.response?.data?.errorMessage || "Failed to update status",
@@ -428,10 +493,23 @@ export const JobAnalyticsView = ({ jobId }: JobAnalyticsViewProps) => {
                         </div>
 
                         {isMatchScored ? (
-                          <div className="flex-1">
-                            <p className="text-sm leading-relaxed text-foreground/80 mb-4 bg-background border border-border/50 p-4 rounded-lg">
-                              {applicant.aiExplanation}
-                            </p>
+                          <div className="flex-1 flex flex-col">
+                            <div className="text-sm leading-relaxed text-foreground/80 mb-4 bg-background border border-border/50 p-4 rounded-lg flex-1">
+                              <p className="line-clamp-4 mb-3">
+                                {applicant.aiExplanation}
+                              </p>
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                className="w-full text-xs font-bold"
+                                onClick={() => {
+                                  setSelectedAiApplicant(applicant);
+                                  setAiDialogOpen(true);
+                                }}
+                              >
+                                View Detailed AI Match &rarr;
+                              </Button>
+                            </div>
                             {applicant.interviewTime && (
                               <div className="mt-4 flex flex-col gap-1 text-primary font-medium bg-primary/10 p-3 rounded-lg border border-primary/20 text-sm">
                                 <div className="flex items-center gap-2">
@@ -494,10 +572,7 @@ export const JobAnalyticsView = ({ jobId }: JobAnalyticsViewProps) => {
                         <>
                           <Button
                             onClick={() =>
-                              handleStatusChange(
-                                applicant.applicantId,
-                                "REJECTED",
-                              )
+                              handleOfferClick(applicant, "REJECTED")
                             }
                             variant="outline"
                             className="w-full sm:w-auto border-destructive/50 text-destructive hover:bg-destructive/10 font-bold"
@@ -506,10 +581,7 @@ export const JobAnalyticsView = ({ jobId }: JobAnalyticsViewProps) => {
                           </Button>
                           <Button
                             onClick={() =>
-                              handleStatusChange(
-                                applicant.applicantId,
-                                "INTERVIEWING",
-                              )
+                              handleOfferClick(applicant, "INTERVIEWING")
                             }
                             className="w-full sm:w-auto font-bold bg-primary hover:bg-primary/90 text-primary-foreground min-w-[200px]"
                           >
@@ -522,10 +594,7 @@ export const JobAnalyticsView = ({ jobId }: JobAnalyticsViewProps) => {
                         <>
                           <Button
                             onClick={() =>
-                              handleStatusChange(
-                                applicant.applicantId,
-                                "REJECTED",
-                              )
+                              handleOfferClick(applicant, "REJECTED")
                             }
                             variant="outline"
                             className="w-full sm:w-auto border-destructive/50 text-destructive hover:bg-destructive/10 font-bold"
@@ -534,10 +603,7 @@ export const JobAnalyticsView = ({ jobId }: JobAnalyticsViewProps) => {
                           </Button>
                           <Button
                             onClick={() =>
-                              handleStatusChange(
-                                applicant.applicantId,
-                                "OFFERED",
-                              )
+                              handleOfferClick(applicant, "OFFERED")
                             }
                             className="w-full sm:w-auto font-bold bg-green-500 hover:bg-green-600 text-white min-w-[200px]"
                           >
@@ -600,6 +666,182 @@ export const JobAnalyticsView = ({ jobId }: JobAnalyticsViewProps) => {
           )}
         </div>
       </div>
+
+      {/* ══ AI Scan Results Dialog ══ */}
+      <Dialog open={aiDialogOpen} onOpenChange={setAiDialogOpen}>
+        <DialogContent className="bg-background border border-border/30 shadow-2xl rounded-2xl w-[95vw] sm:max-w-5xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader className="border-b border-border/20 pb-4 shrink-0">
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-foreground font-bold text-xl flex items-center gap-2">
+                ✨ AI Resume Analysis - {selectedAiApplicant?.name}
+              </DialogTitle>
+              {selectedAiApplicant?.matchScore !== undefined &&
+                selectedAiApplicant?.matchScore !== null && (
+                  <div
+                    className={cn(
+                      "px-4 py-1.5 rounded-full text-sm font-bold border",
+                      selectedAiApplicant.matchScore >= 80
+                        ? "bg-green-500/10 text-green-500 border-green-500/20"
+                        : selectedAiApplicant.matchScore >= 50
+                          ? "bg-yellow-500/10 text-yellow-500 border-yellow-500/20"
+                          : "bg-red-500/10 text-red-500 border-red-500/20",
+                    )}
+                  >
+                    {selectedAiApplicant.matchScore}% Match
+                  </div>
+                )}
+            </div>
+          </DialogHeader>
+
+          <div className="flex flex-col gap-6 pt-4">
+            <div className="space-y-4">
+              <h4 className="text-sm font-semibold text-foreground tracking-wide uppercase">
+                Detailed Explanation
+              </h4>
+              <div className="text-sm text-foreground leading-relaxed bg-muted/20 p-5 rounded-xl border border-border/20">
+                {selectedAiApplicant?.aiExplanation
+                  ?.split("\n")
+                  .map((paragraph: string, idx: number) => (
+                    <p key={idx} className="mb-2 last:mb-0">
+                      {paragraph || <br />}
+                    </p>
+                  ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-green-500/80" />
+                  Candidate Skills
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {selectedAiApplicant?.candidateSkills &&
+                  selectedAiApplicant.candidateSkills.length > 0 ? (
+                    selectedAiApplicant.candidateSkills.map(
+                      (skill: string, idx: number) => (
+                        <span
+                          key={idx}
+                          className="px-2.5 py-1 bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-medium rounded-md"
+                        >
+                          {skill}
+                        </span>
+                      ),
+                    )
+                  ) : (
+                    <span className="text-xs text-muted-foreground italic">
+                      No candidate skills found
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ══ Schedule Interview Dialog ══ */}
+      <Dialog open={interviewOpen} onOpenChange={setInterviewOpen}>
+        <DialogContent className="bg-background border border-border/30 shadow-2xl rounded-2xl sm:max-w-md">
+          <DialogHeader className="border-b border-border/20 pb-4">
+            <DialogTitle className="text-foreground font-bold text-lg">
+              Schedule Interview
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="flex flex-col gap-4 pt-2">
+            <div className="space-y-1.5">
+              <Label className="text-muted-foreground font-medium text-sm">
+                Date
+              </Label>
+              <Input
+                type="date"
+                min={todayStr}
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="bg-input/20 border-border focus-visible:ring-primary focus-visible:border-primary text-foreground"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-muted-foreground font-medium text-sm">
+                Time
+              </Label>
+              <Input
+                type="time"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+                className="bg-input/20 border-border focus-visible:ring-primary focus-visible:border-primary text-foreground"
+              />
+            </div>
+
+            <div className="space-y-1.5 mt-2">
+              <Label className="text-muted-foreground font-medium text-sm">
+                Custom Email Message
+              </Label>
+              <Textarea
+                rows={5}
+                value={emailMessage}
+                onChange={(e) => setEmailMessage(e.target.value)}
+                className="bg-input/20 border-border focus-visible:ring-primary focus-visible:border-primary text-foreground resize-none"
+              />
+            </div>
+
+            <Button
+              onClick={() => {
+                handleOfferSubmit("INTERVIEWING");
+                setInterviewOpen(false);
+              }}
+              disabled={!date || !time}
+              className="w-full mt-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold disabled:opacity-50"
+            >
+              Confirm Interview & Send Email
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ══ Custom Email Action Dialog ══ */}
+      <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
+        <DialogContent className="bg-background border border-border/30 shadow-2xl rounded-2xl sm:max-w-xl">
+          <DialogHeader className="border-b border-border/20 pb-4">
+            <DialogTitle className="text-foreground font-bold text-lg">
+              Review Email Message
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 pt-2">
+            <div className="space-y-1.5 mt-2">
+              <Label className="text-muted-foreground font-medium text-sm">
+                Custom Email Content
+              </Label>
+              <Textarea
+                rows={6}
+                value={emailMessage}
+                onChange={(e) => setEmailMessage(e.target.value)}
+                className="bg-input/20 border-border focus-visible:ring-primary focus-visible:border-primary text-foreground resize-none"
+              />
+              <p className="text-xs text-muted-foreground mt-2">
+                This email will be sent along with an in-app notification
+                confirming your decision.
+              </p>
+            </div>
+            <Button
+              onClick={() => {
+                handleOfferSubmit(pendingOfferStatus);
+                setEmailDialogOpen(false);
+              }}
+              className={cn(
+                "w-full mt-2 font-semibold",
+                pendingOfferStatus === "REJECTED"
+                  ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                  : "bg-primary hover:bg-primary/90 text-primary-foreground",
+              )}
+            >
+              Update Status & Send Email
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };;

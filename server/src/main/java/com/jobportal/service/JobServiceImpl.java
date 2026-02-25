@@ -70,7 +70,10 @@ public class JobServiceImpl implements JobService{
 
     @Override
     public List<JobDTO> getAllJobs() {
-        return jobRepository.findAll().stream().map((x) -> x.toDTO()).toList();
+        return jobRepository.findAll().stream()
+                .filter(job -> job.getEndDate() == null || !job.getEndDate().isBefore(LocalDateTime.now()))
+                .map(Job::toDTO)
+                .toList();
     }
 
     @Override

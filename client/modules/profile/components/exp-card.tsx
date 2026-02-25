@@ -8,6 +8,7 @@ import { changeProfile } from "@/modules/landing/server/profile-slice";
 import { successNotification } from "@/modules/notifications/server/notification-service";
 import { ExpInput } from "./exp-input";
 import { formatDate } from "@/lib/format-date";
+import { CompanyLogo } from "@/components/ui/company-logo";
 
 export const ExpCard = (props: any) => {
   const dispatch = useDispatch();
@@ -29,18 +30,19 @@ export const ExpCard = (props: any) => {
           <div className="flex items-start justify-between mb-4">
             <div className="flex gap-4 items-start flex-1">
               {/* Company Logo */}
-              <div className="p-3 bg-white rounded-xl shadow-lg shrink-0">
-                <img
-                  className="h-10 w-10 object-contain"
-                  src={`/icons/${props.company ? props.company.charAt(0).toUpperCase() + props.company.slice(1) : "default"}.png`}
-                  alt={props.company}
-                  onError={(e) => { e.currentTarget.src = "/icons/default.png"; }}
+              <div className="p-3 bg-white rounded-xl shadow-lg shrink-0 flex items-center justify-center overflow-hidden">
+                <CompanyLogo
+                  company={props.company}
+                  className="h-10 w-10"
+                  fallbackClassName="h-10 w-10 rounded-lg"
                 />
               </div>
 
               {/* Job Info */}
               <div className="flex-1">
-                <h3 className="text-xl font-bold text-foreground mb-1">{props.title}</h3>
+                <h3 className="text-xl font-bold text-foreground mb-1">
+                  {props.title}
+                </h3>
                 <div className="flex items-center gap-2 text-muted-foreground mb-2">
                   <Briefcase className="w-4 h-4" />
                   <span className="font-medium">{props.company}</span>
