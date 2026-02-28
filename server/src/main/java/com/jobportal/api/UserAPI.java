@@ -68,6 +68,16 @@ public class UserAPI {
         return new ResponseEntity<>(new ResponseDTO("OTP Verified Successfully."), HttpStatus.OK);
     }
 
+    @PostMapping("/verify-email/{email}/{otp}")
+    public ResponseEntity<ResponseDTO> verifyEmail(@PathVariable @Email(message = "{user.email.invalid}") String email,
+            @PathVariable @Pattern(regexp = "^[0-9]{6}$", message = "{otp.invalid}") String otp)
+            throws JobPortalExceeption {
+
+        userService.verifyEmail(email, otp);
+
+        return new ResponseEntity<>(new ResponseDTO("Email Verified Successfully."), HttpStatus.OK);
+    }
+
     @PostMapping("/refresh-token")
     public ResponseEntity<?> refreshToken(@RequestBody Map<String, String> request) {
         String refreshToken = request.get("refreshToken");

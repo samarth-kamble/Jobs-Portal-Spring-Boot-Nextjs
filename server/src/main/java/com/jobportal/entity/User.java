@@ -33,8 +33,11 @@ public class User implements UserDetails {
 
     private AccountType accountType;
 
+    private Boolean emailVerified = false;
+
     public UserDTO toDTO() {
-        return new UserDTO(this.id, this.name, this.email, this.password, this.accountType, null, null);
+        return new UserDTO(this.id, this.name, this.email, this.password, this.accountType, this.emailVerified, null,
+                null);
     }
 
     @Override

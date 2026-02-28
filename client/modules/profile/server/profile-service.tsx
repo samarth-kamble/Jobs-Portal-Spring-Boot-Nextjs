@@ -29,3 +29,26 @@ export const getAllProfiles = async() => {
         throw error;
       });
 }
+
+export const uploadResume = async (
+  profileId: number,
+  resume: { name: string; document: string },
+) => {
+  return axios
+    .post(`${base_url}/${profileId}/resumes`, resume)
+    .then((res) => res.data)
+    .catch((error: any) => {
+      throw error;
+    });
+};
+
+export const deleteResume = async (profileId: number, resumeName: string) => {
+  return axios
+    .delete(
+      `${base_url}/${profileId}/resumes/${encodeURIComponent(resumeName)}`,
+    )
+    .then((res) => res.data)
+    .catch((error: any) => {
+      throw error;
+    });
+};

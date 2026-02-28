@@ -57,7 +57,6 @@ const Header = () => {
   return (
     <header className="w-full backdrop-blur-md bg-background/70 px-4 md:px-6 lg:px-8 text-foreground border-b border-border">
       <div className="h-20 flex justify-between items-center">
-
         {/* Logo */}
         <Link href="/" className="flex gap-2 items-center group">
           <div className="p-2 rounded-lg">
@@ -124,16 +123,27 @@ const Header = () => {
               { label: "Find Talent", href: "/find-talent" },
               { label: "Post Job", href: "/post-job" },
               { label: "About us", href: "/about" },
-            ].map(({ label, href }) => (
-              <Link
-                key={href}
-                href={href}
-                className="px-4 py-2 rounded-lg hover:bg-accent transition-colors text-foreground"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {label}
-              </Link>
-            ))}
+            ]
+              .filter(({ href }) => {
+                if (
+                  href === "/find-talent" &&
+                  user?.accountType === "APPLICANT"
+                )
+                  return false;
+                if (href === "/post-job" && user?.accountType !== "EMPLOYER")
+                  return false;
+                return true;
+              })
+              .map(({ label, href }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className="px-4 py-2 rounded-lg hover:bg-accent transition-colors text-foreground"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {label}
+                </Link>
+              ))}
           </div>
 
           <div className="flex items-center justify-between px-4 pt-4 border-t border-border">
@@ -149,7 +159,11 @@ const Header = () => {
               </>
             ) : (
               <div className="flex gap-3 w-full">
-                <Link href="/login" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
+                <Link
+                  href="/login"
+                  className="flex-1"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
                   <Button
                     variant="ghost"
                     className="w-full text-foreground hover:bg-accent hover:text-foreground"
@@ -157,7 +171,11 @@ const Header = () => {
                     Login
                   </Button>
                 </Link>
-                <Link href="/signup" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
+                <Link
+                  href="/signup"
+                  className="flex-1"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
                   <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
                     Sign Up
                   </Button>

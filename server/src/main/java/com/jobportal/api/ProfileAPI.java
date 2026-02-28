@@ -1,6 +1,7 @@
 package com.jobportal.api;
 
 import com.jobportal.dto.ProfileDto;
+import com.jobportal.dto.Resume;
 import com.jobportal.exception.JobPortalExceeption;
 import com.jobportal.service.ProfileService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,9 +28,7 @@ public class ProfileAPI {
     }
 
     @GetMapping("/getall")
-    public ResponseEntity <List<ProfileDto>> getAllProfile() throws JobPortalExceeption {
-//        System.out.println("all profiles:");
-//        System.out.println(profileService.getAllProfile().size());
+    public ResponseEntity<List<ProfileDto>> getAllProfile() throws JobPortalExceeption {
         return new ResponseEntity<>(profileService.getAllProfile(), HttpStatus.OK);
 
     }
@@ -40,5 +39,17 @@ public class ProfileAPI {
 
         return new ResponseEntity<>(profileService.updateProfile(profileDto), HttpStatus.OK);
 
+    }
+
+    @PostMapping("/{id}/resumes")
+    public ResponseEntity<ProfileDto> addResume(@PathVariable Long id, @RequestBody Resume resume)
+            throws JobPortalExceeption {
+        return new ResponseEntity<>(profileService.addResume(id, resume), HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{id}/resumes/{resumeName}")
+    public ResponseEntity<ProfileDto> deleteResume(@PathVariable Long id, @PathVariable String resumeName)
+            throws JobPortalExceeption {
+        return new ResponseEntity<>(profileService.deleteResume(id, resumeName), HttpStatus.OK);
     }
 }

@@ -25,8 +25,18 @@ public class ProfileDto {
     private List<Experience> experiences;
     private List<Certification> certifications;
     private List<Long> savedJobs;
+    private List<Resume> resumes;
 
     public Profile toEntity(){
-        return  new Profile(this.id, this.name, this.email, this.jobTitle, this.company, this.location, this.about, this.picture!=null? Base64.getDecoder().decode(this.picture):null, this.totalExp, this.skills, this.experiences, this.certifications, this.savedJobs);
+        List<Profile.ResumeEntry> resumeEntries = null;
+        if (this.resumes != null) {
+            resumeEntries = this.resumes.stream().map(r -> new Profile.ResumeEntry(
+                    r.getName(),
+                    r.getDocument() != null ? Base64.getDecoder().decode(r.getDocument()) : null,
+                    r.getUploadedAt())).toList();
+        }
+        return new Profile(this.id, this.name, this.email, this.jobTitle, this.company, this.location, this.about,
+                this.picture != null ? Base64.getDecoder().decode(this.picture) : null, this.totalExp,
+                this.skills, this.experiences, this.certifications, this.savedJobs, resumeEntries);
     }
 }

@@ -12,6 +12,7 @@ import {Skills} from "../components/skills";
 import { changeProfile } from "@/modules/landing/server/profile-slice";
 import { Experience } from "../components/experience";
 import { Certificate } from "../components/certificate";
+import { ResumeSection } from "../components/resume-section";
 import Image from "next/image";
 import Banner from "@/public/banner.jpg"
 
@@ -123,6 +124,13 @@ export const ProfileView = (props: any) => {
           {/* Skills Card */}
           <div className="backdrop-blur-xl bg-popover/60 border border-white/10 rounded-2xl p-8 shadow-2xl hover:border-primary/30 transition-all duration-300">
             <Skills profile={profile} edit={!props.id} />
+          </div>
+
+          <hr className="border-white/5" />
+
+          {/* Resume Card */}
+          <div className="backdrop-blur-xl bg-popover/60 border border-white/10 rounded-2xl p-8 shadow-2xl hover:border-primary/30 transition-all duration-300">
+            <ResumeSection profile={profile} edit={!props.id} />
           </div>
 
           <hr className="border-white/5" />

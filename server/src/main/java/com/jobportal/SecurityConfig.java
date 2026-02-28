@@ -35,8 +35,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(req -> req
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/users/login", "/users/register", "/users/send-otp/**",
-                                "/users/verify-otp/**",
-                                "/users/change-pass", "/users/refresh-token",
+                                "/users/verify-otp/**", "/users/verify-email/**",
+                                        "/users/change-pass", "/users/refresh-token",
                                 "/jobs/get-all", "/jobs/get/**")
                         .permitAll()
                         .anyRequest().authenticated())

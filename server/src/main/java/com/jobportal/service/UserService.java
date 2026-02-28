@@ -27,4 +27,6 @@ public interface UserService {
     void deleteUser(Long id) throws JobPortalExceeption;
 
     UserDTO createAdmin(UserDTO userDTO) throws JobPortalExceeption;
+
+    Boolean verifyEmail(String email, String otp) throws JobPortalExceeption;
 }

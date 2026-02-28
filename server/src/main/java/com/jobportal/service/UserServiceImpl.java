@@ -55,9 +55,17 @@ public class UserServiceImpl implements UserService {
         }
         userDTO.setId(Utilities.getNextSequence("users"));
         userDTO.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        userDTO.setEmailVerified(false);
         User user = userDTO.toEntity();
         user = userRepository.save(user);
         profileService.createProfile(userDTO.getEmail(), userDTO.getName(), user.getId());
+
+        // Auto-send OTP for email verification
+        try {
+            sendOtp(userDTO.getEmail());
+        } catch (Exception e) {
+            System.out.println("Failed to send verification OTP: " + e.getMessage());
+        }
 
         UserDTO result = user.toDTO();
         result.setPassword(null);
@@ -69,6 +77,10 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByEmail(loginDTO.getEmail()).orElseThrow(()->new JobPortalExceeption("USER_NOT_FOUND"));
 
         if(!passwordEncoder.matches(loginDTO.getPassword(), user.getPassword())) throw new JobPortalExceeption("INVALID_CREDENTIALS");
+
+        if (user.getEmailVerified() == null || !user.getEmailVerified()) {
+            throw new JobPortalExceeption("EMAIL_NOT_VERIFIED");
+        }
 
         UserDTO userDTO = user.toDTO();
         userDTO.setPassword(null);
@@ -129,6 +141,22 @@ public class UserServiceImpl implements UserService {
             otpRepository.deleteAll(expiredOTPs);
             System.out.println("removed: "+expiredOTPs.size()+" expired OTPs");
         }
+    }
+
+    @Override
+    public Boolean verifyEmail(String email, String otp) throws JobPortalExceeption {
+        OTP otpEntity = otpRepository.findById(email).orElseThrow(() -> new JobPortalExceeption("OTP_NOT_FOUND"));
+
+        if (!otpEntity.getOtpCode().equals(otp))
+            throw new JobPortalExceeption("OTP_INCORRECT");
+
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new JobPortalExceeption("USER_NOT_FOUND"));
+        user.setEmailVerified(true);
+        userRepository.save(user);
+
+        otpRepository.delete(otpEntity);
+
+        return true;
     }
 
     @Override

@@ -1,12 +1,26 @@
 "use client";
 
-import { IconFileCv, IconEye, IconEdit, IconSend } from "@tabler/icons-react";
-import { useState } from "react";
+import {
+  IconFileCv,
+  IconEye,
+  IconEdit,
+  IconSend,
+  IconFile,
+  IconCheck,
+} from "@tabler/icons-react";
+import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useSelector } from "react-redux";
 import { getBase64 } from "@/lib/get-base64";
 import { applyJob } from "@/modules/job/server/job-service";
 import { errorNotification, successNotification } from "@/modules/notifications/server/notification-service";
+import { getProfile } from "@/modules/profile/server/profile-service";
+
+interface ResumeItem {
+  name: string;
+  document: string;
+  uploadedAt: string;
+}
 
 interface FormValues {
   name: string;
@@ -32,6 +46,12 @@ const ApplicationForm = () => {
   const [preview, setPreview] = useState(false);
   const [submit, setSubmit] = useState(false);
 
+  // Saved resumes state
+  const [savedResumes, setSavedResumes] = useState<ResumeItem[]>([]);
+  const [selectedResume, setSelectedResume] = useState<ResumeItem | null>(null);
+  const [resumeMode, setResumeMode] = useState<"saved" | "upload">("saved");
+  const [loadingResumes, setLoadingResumes] = useState(true);
+
   const [values, setValues] = useState<FormValues>({
     name: "",
     email: "",
@@ -43,12 +63,37 @@ const ApplicationForm = () => {
 
   const [errors, setErrors] = useState<FormErrors>({});
 
+  // Fetch saved resumes on mount
+  useEffect(() => {
+    if (user?.id) {
+      getProfile(user.id)
+        .then((profile: any) => {
+          const resumes = profile?.resumes || [];
+          setSavedResumes(resumes);
+          if (resumes.length === 0) {
+            setResumeMode("upload");
+          }
+          setLoadingResumes(false);
+        })
+        .catch(() => {
+          setLoadingResumes(false);
+          setResumeMode("upload");
+        });
+    } else {
+      setLoadingResumes(false);
+      setResumeMode("upload");
+    }
+  }, [user?.id]);
+
   const validate = (): boolean => {
     const newErrors: FormErrors = {};
     if (!values.name.trim()) newErrors.name = "Name is required";
     if (!values.email.trim()) newErrors.email = "Email is required";
     if (!values.phone.trim()) newErrors.phone = "Phone is required";
-    if (!values.resume) newErrors.resume = "Resume is required";
+    if (resumeMode === "upload" && !values.resume)
+      newErrors.resume = "Resume is required";
+    if (resumeMode === "saved" && !selectedResume)
+      newErrors.resume = "Please select a resume";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -68,11 +113,19 @@ const ApplicationForm = () => {
 
   const handleSubmit = async () => {
     setSubmit(true);
-    let resume: any = await getBase64(values.resume as File);
+    let resumeBase64: string;
+
+    if (resumeMode === "saved" && selectedResume) {
+      resumeBase64 = selectedResume.document;
+    } else {
+      const base64 = (await getBase64(values.resume as File)) as string;
+      resumeBase64 = base64.split(",")[1];
+    }
+
     let applicant = {
       ...values,
       applicantId: user.id,
-      resume: resume.split(",")[1],
+      resume: resumeBase64,
     };
     applyJob(id, applicant)
       .then(() => {
@@ -82,15 +135,26 @@ const ApplicationForm = () => {
       })
       .catch((err: any) => {
         setSubmit(false);
-        errorNotification("Error", err.response?.data?.errorMessage || "Something went wrong");
+        errorNotification(
+          "Error",
+          err.response?.data?.errorMessage || "Something went wrong",
+        );
       });
+  };
+
+  const getResumeDisplayName = () => {
+    if (resumeMode === "saved" && selectedResume) {
+      return selectedResume.name;
+    }
+    if (resumeMode === "upload" && values.resume) {
+      return (values.resume as File).name;
+    }
+    return null;
   };
 
   // Shared input styles
   const inputBase =
     "w-full rounded-lg border bg-muted text-foreground placeholder:text-muted-foreground text-sm px-3 py-2.5 outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20 hover:border-primary/40 disabled:cursor-not-allowed disabled:opacity-60";
-  const inputPreview =
-    "w-full bg-transparent border-none text-foreground text-lg font-semibold p-0 outline-none resize-none cursor-default";
   const labelBase = "block text-sm font-semibold text-muted-foreground mb-1.5";
   const labelPreview = "block text-sm font-semibold text-foreground mb-1";
   const errorText = "mt-1 text-xs text-destructive";
@@ -102,7 +166,9 @@ const ApplicationForm = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-sm">
           <div className="flex flex-col items-center gap-4">
             <div className="w-10 h-10 rounded-full border-4 border-primary/20 border-top-primary animate-spin" />
-            <p className="text-muted-foreground text-sm font-medium">Submitting application...</p>
+            <p className="text-muted-foreground text-sm font-medium">
+              Submitting application...
+            </p>
           </div>
         </div>
       )}
@@ -134,7 +200,9 @@ const ApplicationForm = () => {
                 Full Name <span className="text-destructive">*</span>
               </label>
               {preview ? (
-                <p className="text-foreground text-lg font-semibold">{values.name || "—"}</p>
+                <p className="text-foreground text-lg font-semibold">
+                  {values.name || "—"}
+                </p>
               ) : (
                 <>
                   <input
@@ -154,7 +222,9 @@ const ApplicationForm = () => {
                 Email ID <span className="text-destructive">*</span>
               </label>
               {preview ? (
-                <p className="text-foreground text-lg font-semibold">{values.email || "—"}</p>
+                <p className="text-foreground text-lg font-semibold">
+                  {values.email || "—"}
+                </p>
               ) : (
                 <>
                   <input
@@ -177,7 +247,9 @@ const ApplicationForm = () => {
                 Phone/Mobile Number <span className="text-destructive">*</span>
               </label>
               {preview ? (
-                <p className="text-foreground text-lg font-semibold">{values.phone || "—"}</p>
+                <p className="text-foreground text-lg font-semibold">
+                  {values.phone || "—"}
+                </p>
               ) : (
                 <>
                   <input
@@ -185,7 +257,10 @@ const ApplicationForm = () => {
                     value={values.phone}
                     onChange={(e) => {
                       const val = e.target.value;
-                      if (val === "" || (Number(val) >= 0 && Number(val) <= 9999999999)) {
+                      if (
+                        val === "" ||
+                        (Number(val) >= 0 && Number(val) <= 9999999999)
+                      ) {
                         handleChange("phone", val);
                       }
                     }}
@@ -200,9 +275,13 @@ const ApplicationForm = () => {
             </div>
 
             <div>
-              <label className={preview ? labelPreview : labelBase}>Personal Website</label>
+              <label className={preview ? labelPreview : labelBase}>
+                Personal Website
+              </label>
               {preview ? (
-                <p className="text-foreground text-lg font-semibold">{values.website || "—"}</p>
+                <p className="text-foreground text-lg font-semibold">
+                  {values.website || "—"}
+                </p>
               ) : (
                 <input
                   type="text"
@@ -215,7 +294,7 @@ const ApplicationForm = () => {
             </div>
           </div>
 
-          {/* Resume */}
+          {/* Resume Selection */}
           <div>
             <label className={preview ? labelPreview : labelBase}>
               Attach Your CV <span className="text-destructive">*</span>
@@ -223,28 +302,124 @@ const ApplicationForm = () => {
             {preview ? (
               <p className="text-foreground text-lg font-semibold flex items-center gap-2">
                 <IconFileCv size={20} className="text-primary" />
-                {values.resume ? (values.resume as File).name : "—"}
+                {getResumeDisplayName() || "—"}
               </p>
             ) : (
               <>
-                <label
-                  className={`flex items-center gap-3 w-full rounded-lg border px-3 py-2.5 cursor-pointer transition-all duration-200 hover:border-primary/40 ${
-                    errors.resume
-                      ? "border-destructive bg-destructive/5"
-                      : "border-border bg-muted"
-                  }`}
-                >
-                  <IconFileCv size={20} className="text-muted-foreground shrink-0" />
-                  <span className={`text-sm flex-1 ${values.resume ? "text-foreground" : "text-muted-foreground"}`}>
-                    {values.resume ? (values.resume as File).name : "Only PDFs or DOCX are accepted"}
-                  </span>
-                  <input
-                    type="file"
-                    accept="application/pdf"
-                    className="hidden"
-                    onChange={(e) => handleChange("resume", e.target.files?.[0] ?? null)}
-                  />
-                </label>
+                {/* Mode Toggle */}
+                {!loadingResumes && savedResumes.length > 0 && (
+                  <div className="flex gap-2 mb-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setResumeMode("saved");
+                        setErrors((prev) => ({ ...prev, resume: undefined }));
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
+                        resumeMode === "saved"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      Choose Saved Resume
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setResumeMode("upload");
+                        setSelectedResume(null);
+                        setErrors((prev) => ({ ...prev, resume: undefined }));
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
+                        resumeMode === "upload"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      Upload New
+                    </button>
+                  </div>
+                )}
+
+                {resumeMode === "saved" && savedResumes.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {savedResumes.map((resume) => (
+                      <button
+                        key={resume.name}
+                        type="button"
+                        onClick={() => {
+                          setSelectedResume(resume);
+                          setErrors((prev) => ({ ...prev, resume: undefined }));
+                        }}
+                        className={`flex items-center gap-3 p-3 rounded-lg border transition-all duration-200 text-left ${
+                          selectedResume?.name === resume.name
+                            ? "border-primary bg-primary/10"
+                            : "border-border bg-muted hover:border-primary/40"
+                        }`}
+                      >
+                        <div
+                          className={`p-2 rounded-lg shrink-0 ${
+                            selectedResume?.name === resume.name
+                              ? "bg-primary/20"
+                              : "bg-background"
+                          }`}
+                        >
+                          <IconFile
+                            size={16}
+                            className={
+                              selectedResume?.name === resume.name
+                                ? "text-primary"
+                                : "text-muted-foreground"
+                            }
+                          />
+                        </div>
+                        <span
+                          className={`text-sm font-medium flex-1 truncate ${
+                            selectedResume?.name === resume.name
+                              ? "text-foreground"
+                              : "text-muted-foreground"
+                          }`}
+                        >
+                          {resume.name}
+                        </span>
+                        {selectedResume?.name === resume.name && (
+                          <IconCheck
+                            size={16}
+                            className="text-primary shrink-0"
+                          />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <label
+                    className={`flex items-center gap-3 w-full rounded-lg border px-3 py-2.5 cursor-pointer transition-all duration-200 hover:border-primary/40 ${
+                      errors.resume
+                        ? "border-destructive bg-destructive/5"
+                        : "border-border bg-muted"
+                    }`}
+                  >
+                    <IconFileCv
+                      size={20}
+                      className="text-muted-foreground shrink-0"
+                    />
+                    <span
+                      className={`text-sm flex-1 ${values.resume ? "text-foreground" : "text-muted-foreground"}`}
+                    >
+                      {values.resume
+                        ? (values.resume as File).name
+                        : "Only PDFs or DOCX are accepted"}
+                    </span>
+                    <input
+                      type="file"
+                      accept="application/pdf"
+                      className="hidden"
+                      onChange={(e) =>
+                        handleChange("resume", e.target.files?.[0] ?? null)
+                      }
+                    />
+                  </label>
+                )}
                 {errors.resume && <p className={errorText}>{errors.resume}</p>}
               </>
             )}
@@ -252,7 +427,9 @@ const ApplicationForm = () => {
 
           {/* Cover Letter */}
           <div>
-            <label className={preview ? labelPreview : labelBase}>Cover Letter</label>
+            <label className={preview ? labelPreview : labelBase}>
+              Cover Letter
+            </label>
             {preview ? (
               <p className="text-foreground text-base leading-relaxed whitespace-pre-wrap">
                 {values.coverLetter || "—"}
@@ -301,6 +478,6 @@ const ApplicationForm = () => {
       </div>
     </>
   );
-};
+};;
 
 export default ApplicationForm;

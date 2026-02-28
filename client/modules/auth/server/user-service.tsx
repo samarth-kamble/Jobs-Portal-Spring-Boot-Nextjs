@@ -27,3 +27,8 @@ export const changePass = async (email: string, password: string) => {
   const res = await axios.post(`${base_url}/change-pass`, { email, password });
   return res.data;
 };
+
+export const verifyEmail = async (email: string, otp: string) => {
+  const res = await axios.post(`${base_url}/verify-email/${email}/${otp}`);
+  return res.data;
+};

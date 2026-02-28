@@ -120,7 +120,7 @@ export const SelectInput = (props: any) => {
           align="start"
           sideOffset={6}
         >
-          <Command className="bg-transparent">
+          <Command className="bg-transparent" shouldFilter={false}>
             {/* Search input — replicates Mantine's Combobox search */}
             <div className="border-b border-border/30">
               <CommandInput

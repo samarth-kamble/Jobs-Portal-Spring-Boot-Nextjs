@@ -1,6 +1,7 @@
 package com.jobportal.service;
 
 import com.jobportal.dto.ProfileDto;
+import com.jobportal.dto.Resume;
 import com.jobportal.entity.Profile;
 import com.jobportal.exception.JobPortalExceeption;
 import com.jobportal.repository.ProfileRepository;
@@ -27,7 +28,7 @@ public class ProfileServiceImpl implements ProfileService{
         profile.setExperiences(new ArrayList<>());
         profile.setCertifications(new ArrayList<>());
         profile.setSavedJobs(new ArrayList<>());
-//        profile.setPicture(new Byte());
+        profile.setResumes(new ArrayList<>());
         profile.setName(name);
         profileRepository.save(profile);
         return profile.getId();
@@ -49,6 +50,54 @@ public class ProfileServiceImpl implements ProfileService{
     @Override
     public List<ProfileDto> getAllProfile() {
         return profileRepository.findAll().stream().map((x)-> x.toDto()).toList();
+    }
+
+    @Override
+    public ProfileDto addResume(Long id, Resume resume) throws JobPortalExceeption {
+        Profile profile = profileRepository.findById(id)
+                .orElseThrow(() -> new JobPortalExceeption("PROFILE_NOT_FOUND"));
+
+        if (profile.getResumes() == null) {
+            profile.setResumes(new ArrayList<>());
+        }
+
+        if (profile.getResumes().size() >= 5) {
+            throw new JobPortalExceeption("RESUME_LIMIT_REACHED");
+        }
+
+        // Check for duplicate name
+        boolean nameExists = profile.getResumes().stream()
+                .anyMatch(r -> r.getName().equalsIgnoreCase(resume.getName()));
+        if (nameExists) {
+            throw new JobPortalExceeption("RESUME_NAME_EXISTS");
+        }
+
+        Profile.ResumeEntry entry = new Profile.ResumeEntry(
+                resume.getName(),
+                resume.getDocument() != null ? Base64.getDecoder().decode(resume.getDocument()) : null,
+                LocalDateTime.now());
+
+        profile.getResumes().add(entry);
+        profileRepository.save(profile);
+        return profile.toDto();
+    }
+
+    @Override
+    public ProfileDto deleteResume(Long id, String resumeName) throws JobPortalExceeption {
+        Profile profile = profileRepository.findById(id)
+                .orElseThrow(() -> new JobPortalExceeption("PROFILE_NOT_FOUND"));
+
+        if (profile.getResumes() == null || profile.getResumes().isEmpty()) {
+            throw new JobPortalExceeption("RESUME_NOT_FOUND");
+        }
+
+        boolean removed = profile.getResumes().removeIf(r -> r.getName().equalsIgnoreCase(resumeName));
+        if (!removed) {
+            throw new JobPortalExceeption("RESUME_NOT_FOUND");
+        }
+
+        profileRepository.save(profile);
+        return profile.toDto();
     }
 
     public Long calculateTotalExp(ProfileDto profileDto){

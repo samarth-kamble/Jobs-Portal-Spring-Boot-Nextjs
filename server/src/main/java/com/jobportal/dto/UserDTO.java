@@ -31,11 +31,14 @@ public class UserDTO {
 
     private AccountType accountType;
 
+    private Boolean emailVerified;
+
     private String token;
 
     private String refreshToken;
 
     public User toEntity() {
-        return new User(this.id, this.name, this.email, this.password, this.accountType);
+        return new User(this.id, this.name, this.email, this.password, this.accountType,
+                this.emailVerified != null ? this.emailVerified : false);
     }
 }

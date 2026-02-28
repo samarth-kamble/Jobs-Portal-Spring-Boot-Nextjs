@@ -23,6 +23,10 @@ const NavLink = () => {
         if (link.url === "/post-job" && user?.accountType !== "EMPLOYER") {
           return null;
         }
+        // Hide 'Find Talent' from Applicants
+        if (link.url === "/find-talent" && user?.accountType === "APPLICANT") {
+          return null;
+        }
 
         return (
           <Link
