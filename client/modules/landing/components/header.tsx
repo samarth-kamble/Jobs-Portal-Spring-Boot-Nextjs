@@ -77,9 +77,6 @@ const Header = () => {
           {isLoggedIn ? (
             <>
               <ProfileMenu />
-              <button className="bg-accent hover:bg-accent/80 p-2 rounded-lg transition-colors backdrop-blur-sm">
-                <IconSettings stroke={1.5} className="h-5 w-5" />
-              </button>
               <NotificationMenu />
             </>
           ) : (

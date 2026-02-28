@@ -13,9 +13,6 @@ import { changeProfile } from "@/modules/landing/server/profile-slice";
 import { Experience } from "../components/experience";
 import { Certificate } from "../components/certificate";
 import { ResumeSection } from "../components/resume-section";
-import Image from "next/image";
-import Banner from "@/public/banner.jpg"
-
 export const ProfileView = (props: any) => {
   const dispatch = useDispatch();
   const userProfile = useSelector((state: any) => state.profile);
@@ -52,14 +49,55 @@ export const ProfileView = (props: any) => {
       <div className="w-full max-w-6xl mx-auto px-4">
         {/* Banner & Avatar Section */}
         <div className="relative mb-24">
-          {/* Banner with gradient overlay */}
-          <div className="relative h-72 rounded-2xl overflow-hidden">
-            <Image
-              className="w-full h-full object-cover"
-              src={Banner}
-              alt="banner"
+          {/* Banner with ultra-premium abstract design */}
+          <div className="relative h-72 rounded-2xl overflow-hidden bg-slate-950/40 border border-white/5 group shadow-2xl">
+            {/* Base glowing backdrop */}
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.15),rgba(255,255,255,0))]" />
+
+            {/* Animated Aurora/Glows (Slow moving blobs) */}
+            <div className="absolute top-0 right-1/4 w-[400px] h-[400px] bg-primary/20 rounded-full blur-[100px] mix-blend-screen animate-pulse" />
+            <div
+              className="absolute bottom-0 left-1/4 w-[500px] h-[400px] bg-blue-600/15 rounded-full blur-[120px] mix-blend-screen animate-pulse"
+              style={{ animationDelay: "1.5s", animationDuration: "5s" }}
             />
-            <div className="absolute inset-0 bg-linear-to-t from-background/80 via-background/20 to-transparent" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-purple-500/15 rounded-full blur-[150px] mix-blend-screen" />
+
+            {/* Grid Pattern Overlay (Tech feel) */}
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-size-[32px_32px] mask-[radial-gradient(ellipse_60%_60%_at_50%_40%,#000_70%,transparent_100%)] opacity-70" />
+
+            {/* Starry dust (static small particles) */}
+            <div
+              className="absolute inset-0 opacity-40 mix-blend-screen"
+              style={{
+                backgroundImage:
+                  "radial-gradient(circle at 15% 50%, white 1px, transparent 1px), radial-gradient(circle at 85% 30%, rgba(255,255,255,0.8) 1.5px, transparent 1.5px), radial-gradient(circle at 65% 80%, rgba(255,255,255,0.6) 1px, transparent 1px), radial-gradient(circle at 35% 20%, white 2px, transparent 2px)",
+                backgroundSize: "120px 120px",
+              }}
+            />
+
+            {/* Floating glowing orbs / particles */}
+            <div
+              className="absolute top-12 left-1/3 w-2 h-2 rounded-full bg-primary/80 shadow-[0_0_15px_3px_rgba(var(--primary),0.8)] animate-bounce"
+              style={{ animationDuration: "3s" }}
+            />
+            <div
+              className="absolute bottom-20 right-1/4 w-3 h-3 rounded-full bg-blue-400/80 shadow-[0_0_20px_4px_rgba(96,165,250,0.6)] animate-pulse"
+              style={{ animationDuration: "4s" }}
+            />
+            <div
+              className="absolute top-24 right-1/3 w-1.5 h-1.5 rounded-full bg-purple-400/80 shadow-[0_0_10px_2px_rgba(192,132,252,0.6)] animate-bounce"
+              style={{ animationDuration: "2.5s", animationDelay: "1s" }}
+            />
+            <div
+              className="absolute bottom-1/4 left-1/4 w-2 h-2 rounded-full bg-indigo-400/80 shadow-[0_0_12px_2px_rgba(129,140,248,0.6)] animate-pulse"
+              style={{ animationDuration: "5s", animationDelay: "0.5s" }}
+            />
+
+            {/* Glowing horizontal line effect crossing the banner */}
+            <div className="absolute top-1/2 left-0 right-0 h-px bg-linear-to-r from-transparent via-primary/40 to-transparent shadow-[0_0_20px_2px_rgba(var(--primary),0.3)] opacity-50" />
+
+            {/* Smooth bottom fade to blend with page */}
+            <div className="absolute inset-0 bg-linear-to-t from-background via-background/20 to-transparent" />
           </div>
 
           {/* Avatar Container */}

@@ -121,10 +121,12 @@ export const ProfileMenu = () => {
           </DropdownMenuItem>
         </Link>
 
-        <DropdownMenuItem className="text-foreground hover:bg-accent focus:bg-accent focus:text-foreground rounded-lg transition-all duration-200 my-1 cursor-pointer gap-2">
-          <IconFileText size={18} stroke={1.5} />
-          <span className="font-medium">Resume</span>
-        </DropdownMenuItem>
+        <Link href="/profile">
+          <DropdownMenuItem className="text-foreground hover:bg-accent focus:bg-accent focus:text-foreground rounded-lg transition-all duration-200 my-1 cursor-pointer gap-2">
+            <IconFileText size={18} stroke={1.5} />
+            <span className="font-medium">Resume</span>
+          </DropdownMenuItem>
+        </Link>
 
         <DropdownMenuSeparator className="bg-border my-2" />
 

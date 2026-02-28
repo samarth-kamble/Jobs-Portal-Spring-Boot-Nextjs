@@ -41,7 +41,7 @@ export const SearchBar = () => {
           {/* Vertical divider before salary */}
           <div className="hidden lg:block absolute left-0 top-1/2 -translate-y-1/2 w-px h-8 bg-border/30" />
 
-          <div className="px-2">
+          <div className="">
             {/* Trigger row */}
             <button
               type="button"
