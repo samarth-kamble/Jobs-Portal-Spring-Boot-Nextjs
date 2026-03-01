@@ -8,7 +8,7 @@ import { CompanyLogo } from "@/components/ui/company-logo";
 const ApplyJobCompany = (props: any) => {
   return (
     <div className="px-6 pt-6 pb-12">
-      <div className="w-full max-w-4xl mx-auto">
+      <div className="w-full max-w-6xl mx-auto">
         {/* Company Header Card */}
         <div className="relative group bg-card border border-border rounded-2xl p-6 shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300">
           {/* Subtle gradient overlay on hover */}

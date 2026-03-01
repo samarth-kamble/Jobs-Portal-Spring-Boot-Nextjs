@@ -498,17 +498,34 @@ export const JobAnalyticsView = ({ jobId }: JobAnalyticsViewProps) => {
                               <p className="line-clamp-4 mb-3">
                                 {applicant.aiExplanation}
                               </p>
-                              <Button
-                                variant="secondary"
-                                size="sm"
-                                className="w-full text-xs font-bold"
-                                onClick={() => {
-                                  setSelectedAiApplicant(applicant);
-                                  setAiDialogOpen(true);
-                                }}
-                              >
-                                View Detailed AI Match &rarr;
-                              </Button>
+                              <div className="flex flex-col gap-2">
+                                <Button
+                                  variant="secondary"
+                                  size="sm"
+                                  className="w-full text-xs font-bold"
+                                  onClick={() => {
+                                    setSelectedAiApplicant(applicant);
+                                    setAiDialogOpen(true);
+                                  }}
+                                >
+                                  View Detailed AI Match &rarr;
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="w-full text-xs font-bold"
+                                  onClick={() =>
+                                    handleScan(applicant.applicantId)
+                                  }
+                                  disabled={
+                                    scanningId === applicant.applicantId
+                                  }
+                                >
+                                  {scanningId === applicant.applicantId
+                                    ? "Scanning..."
+                                    : "Rescan (Update AI)"}
+                                </Button>
+                              </div>
                             </div>
                             {applicant.interviewTime && (
                               <div className="mt-4 flex flex-col gap-1 text-primary font-medium bg-primary/10 p-3 rounded-lg border border-primary/20 text-sm">

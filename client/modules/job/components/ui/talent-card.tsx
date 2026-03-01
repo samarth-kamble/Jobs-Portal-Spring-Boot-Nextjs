@@ -227,7 +227,7 @@ export const TalentCard = (props: any) => {
 
           {/* ── Match Score Badge ── */}
           {props.matchScore !== undefined && props.matchScore !== null && (
-            <div className="mb-4">
+            <div className="mb-4 flex items-center gap-2 flex-wrap">
               <button
                 onClick={() => setAiResultsOpen(true)}
                 className={cn(
@@ -241,6 +241,15 @@ export const TalentCard = (props: any) => {
               >
                 ✨ AI Match Score: {props.matchScore}% (Click to Details)
               </button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleScan}
+                disabled={scanning}
+                className="h-7 text-xs px-2 py-0"
+              >
+                {scanning ? "Scanning..." : "Rescan"}
+              </Button>
             </div>
           )}
 

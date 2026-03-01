@@ -31,6 +31,7 @@ public class Job {
     private JobStatus jobStatus;
     private Long postedBy;
     private LocalDateTime endDate;
+    private List<Double> jobEmbedding;
 
     public JobDTO toDTO(){
         return new JobDTO(this.id, this.jobTitle, this.company,
