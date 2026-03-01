@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { IconHistory, IconBriefcase, IconSearch } from "@tabler/icons-react";
 import Link from "next/link";
-import { getAllJobs } from "@/modules/job/server/job-service";
+import { getAllJobsIncludingExpired } from "@/modules/job/server/job-service";
 import { JobHistoryCard } from "../ui/job-history-card";
 import { Input } from "@/components/ui/input";
 
@@ -19,15 +19,20 @@ export const JobHistoryView = () => {
     if (!user?.id) return;
     setLoading(true);
 
-    getAllJobs()
+    getAllJobsIncludingExpired()
       .then((res: any[]) => {
         // Find jobs where the user is an applicant
         const history = res.filter((job) =>
-          job.applicants?.some((applicant: any) => applicant.applicantId === user.id)
+          job.applicants?.some(
+            (applicant: any) => applicant.applicantId == user.id,
+          ),
         );
 
         // Sort by newest job post as an approximation if there's no applicant date
-        history.sort((a, b) => new Date(b.postTime).getTime() - new Date(a.postTime).getTime());
+        history.sort(
+          (a, b) =>
+            new Date(b.postTime).getTime() - new Date(a.postTime).getTime(),
+        );
 
         setAppliedJobs(history);
         setFilteredJobs(history);
@@ -103,7 +108,7 @@ export const JobHistoryView = () => {
             {filteredJobs.map((job) => {
               // Extract the user's specific applicant profile for this job
               const applicantProfile = job.applicants.find(
-                (a: any) => a.applicantId === user.id
+                (a: any) => a.applicantId == user.id,
               );
               return (
                 <JobHistoryCard
