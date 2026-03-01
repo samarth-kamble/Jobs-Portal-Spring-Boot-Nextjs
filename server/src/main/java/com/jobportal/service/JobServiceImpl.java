@@ -65,7 +65,29 @@ public class JobServiceImpl implements JobService{
             if(job.getJobStatus().equals(JobStatus.DRAFT) || jobDTO.getJobStatus().equals(JobStatus.CLOSED) )
                 jobDTO.setPostTime(LocalDateTime.now());
         }
-        return jobRepository.save(jobDTO.toEntity()).toDTO();
+
+        Job jobToSave = jobDTO.toEntity();
+
+        // Generate Vector Embedding for Vector Search / RAG
+        String embedText = jobToSave.getJobTitle() + " " + jobToSave.getDescription() + " " +
+                (jobToSave.getSkillsRequired() != null ? String.join(", ", jobToSave.getSkillsRequired()) : "");
+        List<Double> embedding = aiService.generateEmbedding(embedText);
+        jobToSave.setJobEmbedding(embedding);
+
+        Job savedJob = jobRepository.save(jobToSave);
+
+        // Store in MongoDB Atlas Vector Store for RAG similarity search
+        try {
+            aiService.storeInVectorStore(
+                    "job-" + savedJob.getId(),
+                    embedText,
+                    java.util.Map.of("type", "job", "jobId", String.valueOf(savedJob.getId()), "title",
+                            savedJob.getJobTitle()));
+        } catch (Exception e) {
+            System.out.println("⚠️ VectorStore indexing failed (non-blocking): " + e.getMessage());
+        }
+
+        return savedJob.toDTO();
     }
 
     @Override
@@ -94,7 +116,27 @@ public class JobServiceImpl implements JobService{
         applicantDTO.setMatchScore(null); // Score will be hydrated later via manual AI scan
         applicantDTO.setAiExplanation(null);
 
-        applicants.add(applicantDTO.toEntity());
+        Applicant applicantToSave = applicantDTO.toEntity();
+
+        // Advanced AI: Generate Resume Vector Embeddings upon application (RAG Step)
+        String resumeText = cvParserService.extractTextFromBase64Pdf(applicantDTO.getResume());
+        if (resumeText != null && !resumeText.trim().isEmpty()) {
+            List<Double> resumeEmbedding = aiService.generateEmbedding(resumeText);
+            applicantToSave.setResumeEmbedding(resumeEmbedding);
+
+            // Store in MongoDB Atlas Vector Store for RAG similarity search
+            try {
+                aiService.storeInVectorStore(
+                        "resume-" + applicantToSave.getApplicantId() + "-job-" + id,
+                        resumeText,
+                        java.util.Map.of("type", "resume", "applicantId",
+                                String.valueOf(applicantToSave.getApplicantId()), "jobId", String.valueOf(id)));
+            } catch (Exception e) {
+                System.out.println("⚠️ VectorStore indexing failed (non-blocking): " + e.getMessage());
+            }
+        }
+
+        applicants.add(applicantToSave);
         job.setApplicants(applicants);
         jobRepository.save(job);
 
@@ -126,7 +168,55 @@ public class JobServiceImpl implements JobService{
                 .orElseThrow(() -> new JobPortalExceeption("APPLICANT_NOT_FOUND"));
 
         String resumeText = cvParserService.extractTextFromPdfBytes(targetApplicant.getResume());
-        String aiResponse = aiService.analyzeResume(resumeText, job.getJobTitle() + "\\n" + job.getDescription());
+
+        // JIT Generation: If the job or applicant was created before Vector Search,
+        // generate them now
+        boolean embeddingsChanged = false;
+        try {
+            if (job.getJobEmbedding() == null || job.getJobEmbedding().isEmpty()) {
+                String embedText = job.getJobTitle() + " " + job.getDescription() + " " +
+                        (job.getSkillsRequired() != null ? String.join(", ", job.getSkillsRequired()) : "");
+                List<Double> newJobEmbedding = aiService.generateEmbedding(embedText);
+                if (newJobEmbedding.isEmpty()) {
+                    throw new RuntimeException(
+                            "generateEmbedding(job) returned an empty array! Check Gemini Key or Quota.");
+                }
+                job.setJobEmbedding(newJobEmbedding);
+                embeddingsChanged = true;
+            }
+
+            if (targetApplicant.getResumeEmbedding() == null || targetApplicant.getResumeEmbedding().isEmpty()) {
+                if (resumeText != null && !resumeText.isEmpty()) {
+                    List<Double> newResumeEmbedding = aiService.generateEmbedding(resumeText);
+                    if (newResumeEmbedding.isEmpty()) {
+                        throw new RuntimeException(
+                                "generateEmbedding(resume) returned an empty array! Check Gemini Key or Quota.");
+                    }
+                    targetApplicant.setResumeEmbedding(newResumeEmbedding);
+                    embeddingsChanged = true;
+                }
+            }
+        } catch (Exception e) {
+            targetApplicant.setAiExplanation("ERROR DURING VECTOR GENERATION: " + e.getMessage());
+            targetApplicant.setMatchScore(0);
+            jobRepository.save(job);
+            return targetApplicant.toDTO();
+        }
+
+        if (embeddingsChanged) {
+            jobRepository.save(job);
+        }
+
+        // Advanced AI: Retrieve Vectors and Calculate Mathematical Cosine Similarity
+        double cosineSim = 0.0;
+        if (job.getJobEmbedding() != null && targetApplicant.getResumeEmbedding() != null) {
+            cosineSim = aiService.calculateCosineSimilarity(job.getJobEmbedding(),
+                    targetApplicant.getResumeEmbedding());
+        }
+
+        // Pass to Semantic Search Explaination Step
+        String aiResponse = aiService.analyzeResumeAdvanced(resumeText,
+                job.getJobTitle() + "\\n" + job.getDescription(), cosineSim);
 
         try {
             ObjectMapper mapper = new ObjectMapper();

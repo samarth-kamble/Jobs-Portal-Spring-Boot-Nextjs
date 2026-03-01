@@ -1,9 +1,11 @@
 "use client";
 
-import { IconArrowLeft } from "@tabler/icons-react";
+import { IconArrowLeft, IconEdit } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, use } from "react";
+import { useSelector } from "react-redux";
 import { getJob } from "@/modules/job/server/job-service";
+import { getProfile } from "@/modules/profile/server/profile-service";
 import ApplyJobCompany from "../ui/apply-job-company";
 
 interface ApplyJobProps {
@@ -13,8 +15,13 @@ interface ApplyJobProps {
 const ApplyJob = ({ params }: ApplyJobProps) => {
   const router = useRouter();
   const { id } = use(params);
+  const user = useSelector((state: any) => state.user);
   const [job, setJob] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
+  const [profileComplete, setProfileComplete] = useState<boolean>(true);
+  const [missingFields, setMissingFields] = useState<string[]>([]);
+  const [loadingProfile, setLoadingProfile] = useState(true);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -31,8 +38,38 @@ const ApplyJob = ({ params }: ApplyJobProps) => {
     }
   }, [id]);
 
+  useEffect(() => {
+    if (user?.id) {
+      setLoadingProfile(true);
+      getProfile(user.id)
+        .then((profile: any) => {
+          const missing = [];
+          if (!profile?.name || !profile?.email)
+            missing.push("Basic Profile Details");
+          if (!profile?.about) missing.push("About section");
+          if (!profile?.skills || profile.skills.length === 0)
+            missing.push("Skills");
+          if (!profile?.resumes || profile.resumes.length === 0)
+            missing.push("Resume");
+
+          if (missing.length > 0) {
+            setProfileComplete(false);
+            setMissingFields(missing);
+          } else {
+            setProfileComplete(true);
+          }
+          setLoadingProfile(false);
+        })
+        .catch(() => {
+          setLoadingProfile(false);
+        });
+    } else {
+      setLoadingProfile(false);
+    }
+  }, [user?.id]);
+
   return (
-    <div className="min-h-screen bg-background relative mt-16">
+    <div className="min-h-screen bg-background relative mt-6">
       {/* Subtle background blobs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl animate-pulse" />
@@ -46,7 +83,7 @@ const ApplyJob = ({ params }: ApplyJobProps) => {
         />
       </div>
 
-      <div className="relative max-w-7xl mx-auto">
+      <div className="relative max-w-8xl mx-auto">
         {/* Back Button */}
         <div className="px-6 pt-6">
           <button
@@ -60,12 +97,42 @@ const ApplyJob = ({ params }: ApplyJobProps) => {
 
         {/* Main Content */}
         <div className="relative">
-          {loading ? (
-             <div className="flex items-center justify-center min-h-[50vh]">
+          {loading || loadingProfile ? (
+            <div className="flex items-center justify-center min-h-[50vh]">
               <div className="flex flex-col items-center gap-4">
                 {/* Spinner */}
                 <div className="w-10 h-10 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
-                <p className="text-muted-foreground font-medium">Loading job details...</p>
+                <p className="text-muted-foreground font-medium">Loading...</p>
+              </div>
+            </div>
+          ) : !profileComplete ? (
+            <div className="flex items-center justify-center py-20 px-4">
+              <div className="text-center w-full max-w-2xl">
+                <div className="p-8 bg-card border border-border rounded-2xl shadow-lg inline-block w-full">
+                  <div className="w-16 h-16 bg-destructive/10 text-destructive rounded-full flex items-center justify-center mx-auto mb-4">
+                    <IconEdit size={32} />
+                  </div>
+                  <h3 className="text-2xl font-bold text-foreground mb-3">
+                    Profile Incomplete
+                  </h3>
+                  <p className="text-muted-foreground mb-6">
+                    Please complete your profile before applying for jobs. You
+                    are missing the following details:
+                  </p>
+                  <ul className="text-sm font-medium text-destructive bg-destructive/5 rounded-lg px-6 py-4 mb-8 inline-block text-left list-disc list-inside">
+                    {missingFields.map((field, idx) => (
+                      <li key={idx}>{field}</li>
+                    ))}
+                  </ul>
+                  <div className="flex justify-center">
+                    <button
+                      onClick={() => router.push("/profile")}
+                      className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 transition-all duration-200"
+                    >
+                      Complete My Profile
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           ) : job ? (
@@ -74,9 +141,12 @@ const ApplyJob = ({ params }: ApplyJobProps) => {
             <div className="flex items-center justify-center py-20">
               <div className="text-center">
                 <div className="p-8 bg-card border border-border rounded-2xl shadow-lg inline-block">
-                  <h3 className="text-2xl font-bold text-foreground mb-2">Job Not Found</h3>
+                  <h3 className="text-2xl font-bold text-foreground mb-2">
+                    Job Not Found
+                  </h3>
                   <p className="text-muted-foreground mb-6">
-                    The job you're trying to apply for doesn't exist or has been removed.
+                    The job you're trying to apply for doesn't exist or has been
+                    removed.
                   </p>
                   <button
                     onClick={() => router.push("/find-jobs")}

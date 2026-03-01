@@ -32,6 +32,6 @@ public class JobDTO {
         return new Job(this.id, this.jobTitle, this.company,
                 this.applicants != null ? this.applicants.stream().map((x) -> x.toEntity()).toList() : null, this.about,
                 this.experience, this.jobType, this.location, this.packageOffered, this.postTime, this.description,
-                this.skillsRequired, this.jobStatus, this.postedBy, this.endDate);
+                this.skillsRequired, this.jobStatus, this.postedBy, this.endDate, null);
     }
 }

@@ -28,6 +28,7 @@ public class Applicant {
     private String aiExplanation;
     private List<String> requiredSkills;
     private List<String> candidateSkills;
+    private List<Double> resumeEmbedding;
 
     public ApplicantDTO toDTO(){
         return new ApplicantDTO(this.applicantId, this.name, this.email, this.phone, this.website,
