@@ -63,13 +63,15 @@ public class UserServiceImpl implements UserService {
             existingUser.setEmailVerified(false);
             existingUser = userRepository.save(existingUser);
 
-            // Resend verification OTP (async to avoid blocking the response)
-            final String emailToVerify = userDTO.getEmail();
+            // Resend verification OTP (async to avoid blocking)
+            final String userEmail = existingUser.getEmail();
+            final String userName = existingUser.getName();
             new Thread(() -> {
                 try {
-                    sendOtp(emailToVerify);
+                    sendOtpInternal(userEmail, userName);
                 } catch (Exception e) {
-                    System.out.println("Failed to send verification OTP: " + e.getMessage());
+                    System.err.println("Failed to resend verification OTP: " + e.getMessage());
+                    e.printStackTrace();
                 }
             }).start();
 
@@ -84,13 +86,15 @@ public class UserServiceImpl implements UserService {
         user = userRepository.save(user);
         profileService.createProfile(userDTO.getEmail(), userDTO.getName(), user.getId());
 
-        // Auto-send OTP for email verification (async to avoid blocking the response)
-        final String emailForOtp = userDTO.getEmail();
+        // Auto-send OTP for email verification (async to avoid blocking)
+        final String newUserEmail = user.getEmail();
+        final String newUserName = user.getName();
         new Thread(() -> {
             try {
-                sendOtp(emailForOtp);
+                sendOtpInternal(newUserEmail, newUserName);
             } catch (Exception e) {
-                System.out.println("Failed to send verification OTP: " + e.getMessage());
+                System.err.println("Failed to send verification OTP: " + e.getMessage());
+                e.printStackTrace();
             }
         }).start();
 
@@ -119,7 +123,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public Boolean sendOtp(String email) throws Exception {
         User user = userRepository.findByEmail(email).orElseThrow(()->new JobPortalExceeption("USER_NOT_FOUND"));
+        return sendOtpInternal(email, user.getName());
+    }
 
+    private Boolean sendOtpInternal(String email, String userName) throws Exception {
         MimeMessage mm = mailSender.createMimeMessage();
         MimeMessageHelper message = new MimeMessageHelper(mm,true);
 
@@ -130,9 +137,10 @@ public class UserServiceImpl implements UserService {
 
         OTP otp = new OTP(email, genOtp, LocalDateTime.now());
 
+        // Save OTP to database (this shouldn't fail due to replication lag as it's an insert)
         otpRepository.save(otp);
 
-        message.setText(Data.getMessageBody(user.getName(), genOtp), true);
+        message.setText(Data.getMessageBody(userName, genOtp), true);
 
         mailSender.send(mm);
 

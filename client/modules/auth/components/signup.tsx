@@ -93,6 +93,7 @@ export const Signup = () => {
   };
 
   const handleSubmit = () => {
+    if (loading) return;
     const result = signupSchema.safeParse(data);
 
     if (!result.success) {
@@ -162,6 +163,7 @@ export const Signup = () => {
   };
 
   const handleVerifyOtp = () => {
+    if (otpLoading) return;
     const otpCode = otp.join("");
     if (otpCode.length !== 6) {
       toast.error("Please enter the complete 6-digit OTP");
@@ -191,7 +193,7 @@ export const Signup = () => {
   };
 
   const handleResendOtp = () => {
-    if (resendTimer > 0) return;
+    if (resendTimer > 0 || otpLoading) return;
     setOtpLoading(true);
     sendOtp(registeredEmail)
       .then(() => {
