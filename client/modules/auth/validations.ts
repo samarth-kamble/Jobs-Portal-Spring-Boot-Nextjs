@@ -13,8 +13,8 @@ export const signupSchema = z
       .string()
       .min(1, "Password is required")
       .regex(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-        "Password must be at least 8 characters with one uppercase, one lowercase, one number, and one symbol"
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,30}$/,
+        "Password must be 8-30 characters with one uppercase, one lowercase, one number, and one symbol",
       ),
     confirmPassword: z.string().min(1, "Confirm password is required"),
     accountType: z.enum(["APPLICANT", "EMPLOYER"]),
@@ -28,8 +28,8 @@ export const resetPasswordSchema = z
   .string()
   .min(1, "Password is required")
   .regex(
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-    "Password must be at least 8 characters with one uppercase, one lowercase, one number, and one symbol"
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,30}$/,
+    "Password must be 8-30 characters with one uppercase, one lowercase, one number, and one symbol",
   );
 
 export type LoginFormData = z.infer<typeof loginSchema>;
