@@ -99,6 +99,13 @@ public class JobServiceImpl implements JobService{
     }
 
     @Override
+    public List<JobDTO> getAllJobsIncludingExpired() {
+        return jobRepository.findAll().stream()
+                .map(Job::toDTO)
+                .toList();
+    }
+
+    @Override
     public JobDTO getJob(Long id) throws JobPortalExceeption {
         return jobRepository.findById(id).orElseThrow(()-> new JobPortalExceeption("JOB_NOT_FOUND")).toDTO();
     }

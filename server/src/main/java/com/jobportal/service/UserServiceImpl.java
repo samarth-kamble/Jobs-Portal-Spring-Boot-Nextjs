@@ -51,7 +51,31 @@ public class UserServiceImpl implements UserService {
     public UserDTO registerUser(UserDTO userDTO) throws JobPortalExceeption {
         Optional<User> optional =  userRepository.findByEmail(userDTO.getEmail());
         if(optional.isPresent()) {
-            throw new JobPortalExceeption("USER_FOUND");
+            User existingUser = optional.get();
+            // If the existing user already verified their email, block duplicate registration
+            if(existingUser.getEmailVerified() != null && existingUser.getEmailVerified()) {
+                throw new JobPortalExceeption("USER_FOUND");
+            }
+            // If email is NOT verified, allow re-registration by updating the existing record
+            existingUser.setName(userDTO.getName());
+            existingUser.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+            existingUser.setAccountType(userDTO.getAccountType());
+            existingUser.setEmailVerified(false);
+            existingUser = userRepository.save(existingUser);
+
+            // Resend verification OTP (async to avoid blocking the response)
+            final String emailToVerify = userDTO.getEmail();
+            new Thread(() -> {
+                try {
+                    sendOtp(emailToVerify);
+                } catch (Exception e) {
+                    System.out.println("Failed to send verification OTP: " + e.getMessage());
+                }
+            }).start();
+
+            UserDTO result = existingUser.toDTO();
+            result.setPassword(null);
+            return result;
         }
         userDTO.setId(Utilities.getNextSequence("users"));
         userDTO.setPassword(passwordEncoder.encode(userDTO.getPassword()));
@@ -60,12 +84,15 @@ public class UserServiceImpl implements UserService {
         user = userRepository.save(user);
         profileService.createProfile(userDTO.getEmail(), userDTO.getName(), user.getId());
 
-        // Auto-send OTP for email verification
-        try {
-            sendOtp(userDTO.getEmail());
-        } catch (Exception e) {
-            System.out.println("Failed to send verification OTP: " + e.getMessage());
-        }
+        // Auto-send OTP for email verification (async to avoid blocking the response)
+        final String emailForOtp = userDTO.getEmail();
+        new Thread(() -> {
+            try {
+                sendOtp(emailForOtp);
+            } catch (Exception e) {
+                System.out.println("Failed to send verification OTP: " + e.getMessage());
+            }
+        }).start();
 
         UserDTO result = user.toDTO();
         result.setPassword(null);

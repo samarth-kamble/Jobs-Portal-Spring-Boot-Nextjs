@@ -13,6 +13,8 @@ public interface JobService {
 
     public List<JobDTO> getAllJobs();
 
+    public List<JobDTO> getAllJobsIncludingExpired();
+
     public JobDTO getJob(Long id) throws JobPortalExceeption;
 
     public void applyJob(Long id, ApplicantDTO applicantDTO) throws JobPortalExceeption;

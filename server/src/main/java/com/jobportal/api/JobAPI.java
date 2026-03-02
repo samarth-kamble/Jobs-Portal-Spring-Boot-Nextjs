@@ -31,6 +31,11 @@ public class JobAPI {
 
     }
 
+    @GetMapping("/get-all-with-expired")
+    public ResponseEntity<List<JobDTO>> getAllJobsIncludingExpired() throws JobPortalExceeption {
+        return new ResponseEntity<>(jobService.getAllJobsIncludingExpired(), HttpStatus.OK);
+    }
+
     @GetMapping("/get/{id}")
     public ResponseEntity<JobDTO> getProfile(@PathVariable Long id) throws JobPortalExceeption {
         return new ResponseEntity<>(jobService.getJob(id), HttpStatus.OK);
