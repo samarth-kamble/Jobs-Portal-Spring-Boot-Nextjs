@@ -62,6 +62,7 @@ export const ResetPassword = ({ opened, close }: ResetPasswordProps) => {
   const [otpSending, setOtpSending] = useState(false);
   const [verified, setVerified] = useState(false);
   const [resendLoader, setResendLoader] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
   const [seconds, setSeconds] = useState(60);
 
   const { start, stop } = useCountdown(() => {
@@ -76,6 +77,7 @@ export const ResetPassword = ({ opened, close }: ResetPasswordProps) => {
   }, 1000);
 
   const handleSendOtp = () => {
+    if (otpSending) return;
     setOtpSending(true);
     sendOtp(email)
       .then(() => {
@@ -135,17 +137,21 @@ export const ResetPassword = ({ opened, close }: ResetPasswordProps) => {
   };
 
   const handleResetPassword = () => {
+    if (resetLoading) return;
     const result = resetPasswordSchema.safeParse(password);
     if (!result.success) {
       setPassError(result.error.issues[0].message);
       return;
     }
+    setResetLoading(true);
     changePass(email, password)
       .then(() => {
+        setResetLoading(false);
         toast.success("Password Changed", { description: "Login with your new password." });
         handleClose();
       })
       .catch((err) => {
+        setResetLoading(false);
         toast.error("Password reset failed", {
           description: err.response?.data?.errorMessage || "Something went wrong. Please try again.",
         });
@@ -163,30 +169,39 @@ export const ResetPassword = ({ opened, close }: ResetPasswordProps) => {
         </DialogHeader>
 
         <div className="flex flex-col gap-6 px-6 py-6">
-
           {/* Step Indicators */}
           <div className="flex items-center justify-center gap-2">
-            <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all ${
-              !otpSent
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-border bg-muted text-muted-foreground"
-            }`}>
+            <div
+              className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all ${
+                !otpSent
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-muted text-muted-foreground"
+              }`}
+            >
               <IconMail size={16} />
             </div>
-            <div className={`h-0.5 w-12 transition-all ${otpSent ? "bg-primary" : "bg-border"}`} />
-            <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all ${
-              otpSent && !verified
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-border bg-muted text-muted-foreground"
-            }`}>
+            <div
+              className={`h-0.5 w-12 transition-all ${otpSent ? "bg-primary" : "bg-border"}`}
+            />
+            <div
+              className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all ${
+                otpSent && !verified
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-muted text-muted-foreground"
+              }`}
+            >
               <span className="text-xs font-bold">OTP</span>
             </div>
-            <div className={`h-0.5 w-12 transition-all ${verified ? "bg-primary" : "bg-border"}`} />
-            <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all ${
-              verified
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-border bg-muted text-muted-foreground"
-            }`}>
+            <div
+              className={`h-0.5 w-12 transition-all ${verified ? "bg-primary" : "bg-border"}`}
+            />
+            <div
+              className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all ${
+                verified
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-muted text-muted-foreground"
+              }`}
+            >
               <IconLock size={16} />
             </div>
           </div>
@@ -194,10 +209,15 @@ export const ResetPassword = ({ opened, close }: ResetPasswordProps) => {
           {/* Email Input Section */}
           {!verified && (
             <div className="bg-muted/30 rounded-xl p-5 border border-border/50 space-y-3">
-              <Label className="text-foreground/80 font-medium block">Email Address</Label>
+              <Label className="text-foreground/80 font-medium block">
+                Email Address
+              </Label>
               <div className="flex gap-2">
                 <div className="relative flex-1">
-                  <IconAt size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                  <IconAt
+                    size={18}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+                  />
                   <Input
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -229,15 +249,14 @@ export const ResetPassword = ({ opened, close }: ResetPasswordProps) => {
           {otpSent && !verified && (
             <div className="bg-muted/30 rounded-xl p-6 border border-border/50">
               <div className="text-center mb-5">
-                <p className="text-foreground/70 text-sm mb-1">Enter the 6-digit code sent to</p>
+                <p className="text-foreground/70 text-sm mb-1">
+                  Enter the 6-digit code sent to
+                </p>
                 <p className="text-primary font-semibold">{email}</p>
               </div>
 
               <div className="flex justify-center">
-                <InputOTP
-                  maxLength={6}
-                  onComplete={handleVerifyOtp}
-                >
+                <InputOTP maxLength={6} onComplete={handleVerifyOtp}>
                   <InputOTPGroup className="gap-2">
                     {[0, 1, 2, 3, 4, 5].map((i) => (
                       <InputOTPSlot
@@ -288,13 +307,20 @@ export const ResetPassword = ({ opened, close }: ResetPasswordProps) => {
                   New Password <span className="text-primary">*</span>
                 </Label>
                 <div className="relative">
-                  <IconLock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                  <IconLock
+                    size={18}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+                  />
                   <Input
                     value={password}
                     onChange={(e) => {
                       setPassword(e.target.value);
-                      const result = resetPasswordSchema.safeParse(e.target.value);
-                      setPassError(result.success ? "" : result.error.issues[0].message);
+                      const result = resetPasswordSchema.safeParse(
+                        e.target.value,
+                      );
+                      setPassError(
+                        result.success ? "" : result.error.issues[0].message,
+                      );
                     }}
                     name="password"
                     type={showPassword ? "text" : "password"}
@@ -306,7 +332,11 @@ export const ResetPassword = ({ opened, close }: ResetPasswordProps) => {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    {showPassword ? <IconEyeOff size={18} /> : <IconEye size={18} />}
+                    {showPassword ? (
+                      <IconEyeOff size={18} />
+                    ) : (
+                      <IconEye size={18} />
+                    )}
                   </button>
                 </div>
                 {passError && (
@@ -316,11 +346,12 @@ export const ResetPassword = ({ opened, close }: ResetPasswordProps) => {
 
               <Button
                 onClick={handleResetPassword}
+                disabled={resetLoading}
                 className="w-full bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-semibold"
                 size="lg"
               >
                 <IconShieldCheck size={18} className="mr-2" />
-                Reset Password
+                {resetLoading ? "Resetting..." : "Reset Password"}
               </Button>
             </div>
           )}

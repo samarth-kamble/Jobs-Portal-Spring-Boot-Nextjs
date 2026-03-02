@@ -143,6 +143,7 @@ export const PostJobView = () => {
 
   const [editorData, setEditorData] = useState(content);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
 
   const [form, setForm] = useState({
     jobTitle: "",
@@ -233,7 +234,10 @@ export const PostJobView = () => {
   };
 
   const submit = (status: "ACTIVE" | "DRAFT") => {
+    if (loading) return;
     if (status === "ACTIVE" && !validate()) return;
+
+    setLoading(true);
     postJob({
       ...form,
       id: id && id !== "0" ? id : undefined,
@@ -241,6 +245,7 @@ export const PostJobView = () => {
       jobStatus: status,
     })
       .then((res: any) => {
+        setLoading(false);
         successNotification(
           "Success",
           status === "ACTIVE"
@@ -250,6 +255,7 @@ export const PostJobView = () => {
         router.push(`/posted-jobs/${res.id}`);
       })
       .catch((err: any) => {
+        setLoading(false);
         errorNotification("Something went wrong", err.response?.data);
       });
   };
@@ -438,19 +444,21 @@ export const PostJobView = () => {
             <Button
               type="button"
               variant="ghost"
+              disabled={loading}
               onClick={() => submit("DRAFT")}
               className="gap-2 text-muted-foreground hover:text-foreground hover:bg-muted/30 border border-border/40 hover:border-border transition-all"
             >
               <IconDeviceFloppy size={17} />
-              Save as Draft
+              {loading ? "Saving..." : "Save as Draft"}
             </Button>
             <Button
               type="button"
+              disabled={loading}
               onClick={() => submit("ACTIVE")}
               className="gap-2 bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-[1.02] transition-all duration-200 font-semibold"
             >
               <IconSend size={17} />
-              Publish Job
+              {loading ? "Publishing..." : "Publish Job"}
             </Button>
           </div>
         </div>

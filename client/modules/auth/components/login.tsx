@@ -30,6 +30,7 @@ export const Login = () => {
   };
 
   const handleSubmit = () => {
+    if (loading) return;
     const result = loginSchema.safeParse(data);
 
     if (!result.success) {

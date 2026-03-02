@@ -124,6 +124,7 @@ const ApplicationForm = () => {
   };
 
   const handleSubmit = async () => {
+    if (submit) return;
     setSubmit(true);
     let resumeBase64: string;
 
@@ -502,17 +503,19 @@ const ApplicationForm = () => {
                   <div className="flex gap-4">
                     <button
                       onClick={handlePreview}
-                      className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg border border-border bg-card text-foreground font-semibold text-sm hover:bg-accent hover:border-primary/40 transition-all duration-200"
+                      disabled={submit}
+                      className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg border border-border bg-card text-foreground font-semibold text-sm hover:bg-accent hover:border-primary/40 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <IconEdit size={20} />
                       Edit Application
                     </button>
                     <button
                       onClick={handleSubmit}
-                      className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 hover:scale-[1.01] transition-all duration-200 shadow-md shadow-primary/20"
+                      disabled={submit}
+                      className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 hover:scale-[1.01] transition-all duration-200 shadow-md shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <IconSend size={20} />
-                      Submit Application
+                      {submit ? "Submitting..." : "Submit Application"}
                     </button>
                   </div>
                 )}
