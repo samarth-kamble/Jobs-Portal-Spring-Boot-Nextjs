@@ -218,14 +218,16 @@ public class JobServiceImpl implements JobService{
                     targetApplicant.getResumeEmbedding());
         }
 
-        // Pass to Semantic Search Explaination Step
-        String aiResponse = aiService.analyzeResumeAdvanced(resumeText,
-                job.getJobTitle() + "\\n" + job.getDescription(), cosineSim);
+        // ── Step 1: Get accurate match score via a dedicated simple Gemini call ──
+        String jobDescriptionFull = job.getJobTitle() + "\\n" + job.getDescription();
+        int matchScore = aiService.getMatchScore(resumeText, jobDescriptionFull);
+
+        // ── Step 2: Get explanation, skills, and fairness from the RAG model ──
+        String aiResponse = aiService.analyzeResumeAdvanced(resumeText, jobDescriptionFull, cosineSim);
 
         try {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode node = mapper.readTree(aiResponse);
-            int score = node.has("matchScore") ? node.get("matchScore").asInt() : 0;
             String explanation = node.has("aiExplanation") ? node.get("aiExplanation").asText()
                     : "No explanation provided.";
 
@@ -243,14 +245,15 @@ public class JobServiceImpl implements JobService{
                 node.get("candidateSkills").forEach(s -> candSkills.add(s.asText()));
             }
 
-            targetApplicant.setMatchScore(score);
+            // Use the score from the dedicated getMatchScore() call
+            targetApplicant.setMatchScore(matchScore);
             targetApplicant.setAiExplanation(explanation);
             targetApplicant.setFairnessScore(fairnessScore);
             targetApplicant.setFairnessExplanation(fairnessExplanation);
             targetApplicant.setRequiredSkills(reqSkills);
             targetApplicant.setCandidateSkills(candSkills);
         } catch (Exception e) {
-            targetApplicant.setMatchScore(0);
+            targetApplicant.setMatchScore(matchScore); // still use the dedicated score even on parse failure
             targetApplicant.setAiExplanation("Error parsing AI response: " + e.getMessage() + " | Raw: " + aiResponse);
             targetApplicant.setFairnessScore(0);
             targetApplicant.setFairnessExplanation("Error assessing fairness.");
