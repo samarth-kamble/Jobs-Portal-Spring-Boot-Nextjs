@@ -23,6 +23,7 @@ import {
   IconLink,
   IconChevronLeft,
   IconChevronRight,
+  IconEdit,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import {
@@ -249,13 +250,25 @@ export const JobAnalyticsView = ({ jobId }: JobAnalyticsViewProps) => {
               </span>
             </div>
           </div>
-          <div className="text-right">
-            <div className="text-3xl font-bold text-primary">
-              {job.applicants?.length || 0}
+          <div className="flex items-center gap-6">
+            <div className="text-right flex flex-col items-end justify-center">
+              <div className="text-3xl font-bold text-primary">
+                {job.applicants?.length || 0}
+              </div>
+              <div className="text-sm text-muted-foreground font-medium uppercase tracking-wider">
+                Total Applicants
+              </div>
             </div>
-            <div className="text-sm text-muted-foreground font-medium uppercase tracking-wider">
-              Total Applicants
-            </div>
+
+            <div className="h-10 w-px bg-border hidden sm:block"></div>
+
+            <Link
+              href={`/post-job/${job.id}`}
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-semibold transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary/10 text-primary hover:bg-primary/20 h-10 px-5 shadow-xs border border-primary/20"
+            >
+              <IconEdit size={18} />
+              Edit Job
+            </Link>
           </div>
         </div>
       </div>

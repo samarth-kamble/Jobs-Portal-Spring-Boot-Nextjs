@@ -8,7 +8,8 @@ import {
   Users,
   MessageCircle,
   CheckCircle,
-  LogOut
+  LogOut,
+  BrainCircuit,
 } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { removeUser } from "@/modules/auth/server/user-slice";
@@ -59,6 +60,11 @@ export const EmployerSidebar = () => {
       title: "Hired",
       href: "/employer/applicants/hired",
       icon: CheckCircle,
+    },
+    {
+      title: "AI Insights",
+      href: "/employer/ai-dashboard",
+      icon: BrainCircuit,
     },
   ];
 

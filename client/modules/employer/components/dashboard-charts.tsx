@@ -269,3 +269,239 @@ export const DashboardRadarChart = ({ radarData }: { radarData: any[] }) => {
     </Card>
   );
 };
+
+/* ═══════════════════════════════════════════════════════════════════
+ * AI ACCURACY DASHBOARD CHARTS
+ * Charts for Match Score Distribution, Skill Gap Trends, and
+ * Hiring Success Patterns.
+ * ═══════════════════════════════════════════════════════════════════ */
+
+/**
+ * MatchScoreDistributionChart — Histogram showing how many applicants
+ * fall into each AI match score bucket (0–20, 21–40, 41–60, 61–80, 81–100).
+ */
+export const MatchScoreDistributionChart = ({
+  data,
+}: {
+  data: { range: string; count: number; fill: string }[];
+}) => {
+  const config = {
+    count: { label: "Applicants", color: "var(--color-chart-1)" },
+  } satisfies ChartConfig;
+
+  return (
+    <Card className="border-border bg-card/60 backdrop-blur-xl h-full flex flex-col">
+      <CardHeader>
+        <CardTitle className="text-xl font-bold">
+          📊 Match Score Distribution
+        </CardTitle>
+        <CardDescription>
+          How AI match scores are distributed across all scanned applicants.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex-1 flex items-center justify-center min-h-[300px] pb-4">
+        {data.length > 0 ? (
+          <ChartContainer
+            config={config}
+            className="w-full aspect-auto h-[300px]"
+          >
+            <BarChart
+              data={data}
+              margin={{ top: 20, right: 10, left: 0, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis
+                dataKey="range"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={10}
+                fontSize={12}
+              />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                tickMargin={10}
+                fontSize={12}
+                allowDecimals={false}
+              />
+              <ChartTooltip
+                cursor={{ fill: "rgba(0,0,0,0.1)" }}
+                content={<ChartTooltipContent />}
+              />
+              <Bar dataKey="count" radius={[6, 6, 0, 0]} maxBarSize={60}>
+                {data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ChartContainer>
+        ) : (
+          <div className="flex items-center justify-center h-[300px] text-muted-foreground text-sm">
+            No scanned applicants yet. Run AI Scans to see data.
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+/**
+ * SkillGapChart — Horizontal BarChart comparing required skills (demand)
+ * vs candidate skills (supply) to reveal skill gaps.
+ */
+export const SkillGapChart = ({
+  data,
+}: {
+  data: { skill: string; required: number; candidate: number }[];
+}) => {
+  const config = {
+    required: { label: "Required (Demand)", color: "var(--color-chart-4)" },
+    candidate: { label: "Candidate (Supply)", color: "var(--color-chart-2)" },
+  } satisfies ChartConfig;
+
+  return (
+    <Card className="border-border bg-card/60 backdrop-blur-xl h-full flex flex-col">
+      <CardHeader>
+        <CardTitle className="text-xl font-bold">
+          🔍 Skill Gap Trends
+        </CardTitle>
+        <CardDescription>
+          Required skills vs. what candidates actually have. Larger gaps indicate harder-to-fill roles.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex-1 flex items-center justify-center min-h-[300px] pb-4">
+        {data.length > 0 ? (
+          <ChartContainer
+            config={config}
+            className="w-full aspect-auto h-[340px]"
+          >
+            <BarChart
+              data={data}
+              layout="vertical"
+              margin={{ top: 10, right: 20, left: 10, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+              <XAxis
+                type="number"
+                tickLine={false}
+                axisLine={false}
+                fontSize={12}
+                allowDecimals={false}
+              />
+              <YAxis
+                type="category"
+                dataKey="skill"
+                tickLine={false}
+                axisLine={false}
+                fontSize={11}
+                width={90}
+              />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <ChartLegend content={<ChartLegendContent />} />
+              <Bar
+                dataKey="required"
+                fill="var(--color-required)"
+                radius={[0, 4, 4, 0]}
+                maxBarSize={18}
+              />
+              <Bar
+                dataKey="candidate"
+                fill="var(--color-candidate)"
+                radius={[0, 4, 4, 0]}
+                maxBarSize={18}
+              />
+            </BarChart>
+          </ChartContainer>
+        ) : (
+          <div className="flex items-center justify-center h-[300px] text-muted-foreground text-sm">
+            Not enough data to display.
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+/**
+ * HiringSuccessChart — Grouped BarChart showing applicant outcomes
+ * (Interviewing, Hired, Rejected) segmented by AI match score range
+ * to reveal whether high scores correlate with hiring.
+ */
+export const HiringSuccessChart = ({
+  data,
+}: {
+  data: { range: string; interviewing: number; hired: number; rejected: number }[];
+}) => {
+  const config = {
+    interviewing: { label: "Interviewing", color: "var(--color-chart-2)" },
+    hired: { label: "Hired", color: "var(--color-chart-3)" },
+    rejected: { label: "Rejected", color: "var(--color-chart-4)" },
+  } satisfies ChartConfig;
+
+  return (
+    <Card className="border-border bg-card/60 backdrop-blur-xl h-full flex flex-col">
+      <CardHeader>
+        <CardTitle className="text-xl font-bold">
+          🎯 Hiring Success Patterns
+        </CardTitle>
+        <CardDescription>
+          Applicant outcomes grouped by AI match score range. Shows if higher scores lead to more hires.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex-1 flex items-center justify-center min-h-[300px] pb-4">
+        {data.length > 0 ? (
+          <ChartContainer
+            config={config}
+            className="w-full aspect-auto h-[300px]"
+          >
+            <BarChart
+              data={data}
+              margin={{ top: 20, right: 10, left: 0, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis
+                dataKey="range"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={10}
+                fontSize={12}
+              />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                tickMargin={10}
+                fontSize={12}
+                allowDecimals={false}
+              />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <ChartLegend content={<ChartLegendContent />} />
+              <Bar
+                dataKey="interviewing"
+                fill="var(--color-interviewing)"
+                radius={[4, 4, 0, 0]}
+                maxBarSize={40}
+              />
+              <Bar
+                dataKey="hired"
+                fill="var(--color-hired)"
+                radius={[4, 4, 0, 0]}
+                maxBarSize={40}
+              />
+              <Bar
+                dataKey="rejected"
+                fill="var(--color-rejected)"
+                radius={[4, 4, 0, 0]}
+                maxBarSize={40}
+              />
+            </BarChart>
+          </ChartContainer>
+        ) : (
+          <div className="flex items-center justify-center h-[300px] text-muted-foreground text-sm">
+            Not enough hiring data to display patterns.
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+

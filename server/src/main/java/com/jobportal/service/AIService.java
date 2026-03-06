@@ -122,6 +122,8 @@ public class AIService {
     }
 
     // ── Advanced Resume Analysis with RAG Vector Search Score ──
+    // NOTE: matchScore is NOT generated here. It comes from getMatchScore().
+    // This method handles only the explanation, skills, and fairness check.
     public String analyzeResumeAdvanced(String resumeText, String jobDescription, double matchScoreFromVectorSearch) {
         int vectorScorePercentage = (int) Math.round(Math.max(0, matchScoreFromVectorSearch) * 100);
 
@@ -131,19 +133,14 @@ public class AIService {
                 "Job Description:\n" + jobDescription + "\n\n" +
                 "Resume:\n" + resumeText + "\n\n" +
                 "Your task:\n" +
-                "1. Provide a FINAL adjusted matchScore (0-100). This matchScore MUST be strictly based on the provided Cosine Similarity Score ("
-                + vectorScorePercentage + "%). You should output exactly " + vectorScorePercentage
-                + " or a value very close to it. Do not hallucinate an arbitrarily high score; precision and vector accuracy are required.\n"
+                "1. Provide an aiExplanation explaining why they match or don't match, explicitly mentioning the vector similarity score ("
+                + vectorScorePercentage + "%) and how their skills align semantically.\n" +
+                "2. IMPORTANT: Conduct a Fairness and Bias Check. The resume text has had PII redacted. Evaluate the candidate SOLELY on their skills, experience, and qualifications. You must provide a 'fairnessScore' (0-100, typically 100 if evaluated fairly based purely on skills without demographic bias) and a 'fairnessExplanation' explicitly confirming that the evaluation was objective, GDPR-compliant, and free from bias regarding race, gender, age, or location.\n"
                 +
-                "2. Provide an aiExplanation explaining why they match or don't match, explicitly mentioning the vector similarity score ("
-                + vectorScorePercentage + "%) and how their skills align semantically.\n"
-                +
-                "3. IMPORTANT: Conduct a Fairness and Bias Check. The resume text has had PII redacted. Evaluate the candidate SOLELY on their skills, experience, and qualifications. You must provide a 'fairnessScore' (0-100, typically 100 if evaluated fairly based purely on skills without demographic bias) and a 'fairnessExplanation' explicitly confirming that the evaluation was objective, GDPR-compliant, and free from bias regarding race, gender, age, or location.\n"
-                +
-                "Provide a JSON response STRICTLY in the following exact format without any markdown wrappers (no ```json or backticks). Do NOT copy these example values, you MUST generate your own accurate arrays, strings, and calculate the actual matchScore integer (between 0 and 100):\n"
+                "3. List the skills required by the job, and the skills the candidate possesses.\n\n" +
+                "Provide a JSON response STRICTLY in the following exact format without any markdown wrappers (no ```json or backticks):\n"
                 +
                 "{\n" +
-                "  \"matchScore\": <integer_between_0_and_100>,\n" +
                 "  \"aiExplanation\": \"<detailed_string_explanation>\",\n" +
                 "  \"fairnessScore\": <integer_between_0_and_100>,\n" +
                 "  \"fairnessExplanation\": \"<detailed_string_explanation>\",\n" +
@@ -169,7 +166,39 @@ public class AIService {
             return jsonText.trim();
         } catch (Exception e) {
             e.printStackTrace();
-            return "{\"matchScore\": 0, \"aiExplanation\": \"Error analyzing resume via AI: " + e.getMessage() + "\"}";
+            return "{\"aiExplanation\": \"Error analyzing resume via AI: " + e.getMessage() + "\"}";
+        }
+    }
+
+    /**
+     * Simple, dedicated Gemini call that returns ONLY the match percentage.
+     * This avoids the issue where the AI copies example values from a complex
+     * prompt.
+     * The score is based purely on how well the resume matches the job description.
+     */
+    public int getMatchScore(String resumeText, String jobDescription) {
+        String prompt = "You are an expert recruiter. Compare the following resume against the job description " +
+                "and return ONLY a single integer from 0 to 100 representing the match percentage. " +
+                "0 means no match at all, 100 means a perfect match. " +
+                "Do NOT return any other text, explanation, or JSON. Just the number.\n\n" +
+                "Job Description:\n" + jobDescription + "\n\n" +
+                "Resume:\n" + resumeText;
+
+        try {
+            String response = chatClient.prompt()
+                    .user(prompt)
+                    .call()
+                    .content()
+                    .trim();
+
+            // Extract the first integer found in the response
+            String digits = response.replaceAll("[^0-9]", "");
+            int score = Integer.parseInt(digits);
+            // Clamp between 0 and 100
+            return Math.max(0, Math.min(100, score));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0;
         }
     }
 }
